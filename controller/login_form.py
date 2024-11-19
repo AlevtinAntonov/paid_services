@@ -1,5 +1,6 @@
 from PyQt6 import QtWidgets as qtw
 
+from controller.start_window import StartWindow
 from view.login_window import Ui_FormLogin
 
 
