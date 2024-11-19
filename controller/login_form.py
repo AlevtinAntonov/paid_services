@@ -11,7 +11,6 @@ class LoginForm(qtw.QWidget, Ui_FormLogin):
         # Connect the login button to the method
         self.pb_Login.clicked.connect(self.check_user_password)
 
-
         self.show()
 
     def check_user_password(self):
