@@ -26,6 +26,7 @@ class LoginForm(qtw.QWidget, Ui_FormLogin):
         try:
             self.start_window = StartWindow()
             self.start_window.show()
+            self.start_window.showMaximized()
             self.hide()
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"Ошибка при открытии StartWindow(): {e}")
