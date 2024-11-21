@@ -36,8 +36,6 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         # Включаем сортировку
         self.tableWidget_Contracts.setSortingEnabled(True)
 
-
-
     def connect_db(self):
         # Проверяем, поддерживается ли драйвер
         if not QSqlDatabase.isDriverAvailable("QPSQL"):
