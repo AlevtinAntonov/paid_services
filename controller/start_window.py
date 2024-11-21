@@ -60,13 +60,17 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 else:
 
                     item = qtw.QTableWidgetItem()
-                    if isinstance(item_data, bool):  # Если это логическое значение
-                        item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
-                        item.setFlags(
-                            item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
-                    else:
+                    if column == 1 or column == 2 or column == 3:  # Запрет редактирования для 1-й - 3-й колонок
                         item.setText(str(item_data))  # Для остальных значений
-                        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
+                    else:
+                        if isinstance(item_data, bool):  # Если это логическое значение
+                            item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
+                            item.setFlags(
+                                item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                        else:
+                            item.setText(str(item_data))  # Для остальных значений
+                            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
 
                     self.tableWidget_Contracts.setItem(row, column, item)
 
