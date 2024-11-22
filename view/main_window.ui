@@ -28,58 +28,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="3,1">
           <item>
-           <widget class="QTableWidget" name="tableWidget_Contracts">
-            <column>
-             <property name="text">
-              <string>ID</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Number</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Date</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Child</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Lesson</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Team</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Remaks</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Signed</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Cancel_Date</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>CA_Signed</string>
-             </property>
-            </column>
-           </widget>
+           <widget class="QTableWidget" name="tableWidget_Contracts"/>
           </item>
           <item>
            <widget class="QTableView" name="tableView_ContractInfo"/>
@@ -168,7 +117,7 @@
      <x>0</x>
      <y>0</y>
      <width>1318</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
