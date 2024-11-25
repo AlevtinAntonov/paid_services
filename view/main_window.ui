@@ -48,9 +48,9 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="pushButton_Refresh">
             <property name="text">
-             <string>PushButton</string>
+             <string>Обновить</string>
             </property>
            </widget>
           </item>
@@ -62,9 +62,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="pushButton_Close">
             <property name="text">
-             <string>PushButton</string>
+             <string>Выход</string>
             </property>
            </widget>
           </item>
@@ -117,7 +117,7 @@
      <x>0</x>
      <y>0</y>
      <width>1318</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
