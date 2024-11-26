@@ -6,17 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1318</width>
-    <height>699</height>
+    <width>1210</width>
+    <height>775</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Платные Услуги</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QTabWidget" name="tabWidget">
+      <property name="font">
+       <font>
+        <family>Times New Roman</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -24,40 +30,275 @@
        <attribute name="title">
         <string>Договоры ДУ</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="3,1">
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
           <item>
-           <widget class="QTableWidget" name="tableWidget_Contracts"/>
+           <widget class="QLabel" name="label_9">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Фильтр по ФИО ребенка</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QTableView" name="tableView_ContractInfo"/>
+           <widget class="QLineEdit" name="lineEdit_FilterChild">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>14</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,1">
+         <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="5,2">
           <item>
-           <widget class="QTableWidget" name="tableWidget_Payments"/>
+           <widget class="QTableWidget" name="tableWidget_Contracts"/>
           </item>
           <item>
-           <widget class="QTableView" name="tableView_ChildInfo"/>
+           <widget class="QWidget" name="widget_ContractInfo" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1,1">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Договор №</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_CntractNumber">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>от</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_ContractDate">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1">
+               <item>
+                <widget class="QLabel" name="label_3">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>дата начала</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_ContractDateStart">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
+               <item>
+                <widget class="QLabel" name="label_4">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>дата завершения</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_ContractDateEnd">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,4">
+               <item>
+                <widget class="QLabel" name="label_5">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Заказчик</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox_ContractApplicant">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,4">
+               <item>
+                <widget class="QLabel" name="label_6">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Ребенок</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox_ContractChild">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,4">
+               <item>
+                <widget class="QLabel" name="label_7">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Кружок</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox_ContractLessons">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_9">
+               <item>
+                <widget class="QLabel" name="label_8">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Примечание</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_CntractRemaks">
+                 <property name="font">
+                  <font>
+                   <family>Times New Roman</family>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QPushButton" name="pushButton_Refresh">
+           <widget class="QPushButton" name="pushButton_NewContract">
             <property name="text">
-             <string>Обновить</string>
+             <string>Новый договор</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="pushButton_PrintContract">
             <property name="text">
-             <string>PushButton</string>
+             <string>Печать</string>
             </property>
            </widget>
           </item>
@@ -67,6 +308,16 @@
              <string>Выход</string>
             </property>
            </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,2">
+          <item>
+           <widget class="QTableWidget" name="tableWidget_Payments"/>
+          </item>
+          <item>
+           <widget class="QTableView" name="tableView_ChildInfo"/>
           </item>
          </layout>
         </item>
@@ -116,8 +367,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1318</width>
-     <height>22</height>
+     <width>1210</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

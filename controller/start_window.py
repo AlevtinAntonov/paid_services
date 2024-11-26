@@ -16,6 +16,8 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        self.lineEdit_FilterChild.textChanged.connect(self.filter_data)
+
         # Создаем экземпляр DatabaseConnector и подключаемся к базе данных
         self.db_connector = DatabaseConnector()
         if not self.db_connector.connect():
@@ -27,56 +29,16 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
         self.tableWidget_Contracts.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
-    def tbl_contracts_view(self):
-        # Создаем модели для таблиц
-        self.contracts_model = QtSql.QSqlTableModel(self)
-        self.contracts_model.setTable('contracts_view')
-        self.contracts_model.select()
-
-        self.tableWidget_Contracts.setRowCount(0)  # Сбрасываем количество строк
-        self.tableWidget_Contracts.setColumnCount(self.contracts_model.columnCount())  # Устанавливаем количество столбцов
-        # Отключаем отображение номеров строк
-        self.tableWidget_Contracts.verticalHeader().setVisible(False)
-
-        # Заполнение QTableWidget данными из модели
-        for row in range(self.contracts_model.rowCount()):
-            self.tableWidget_Contracts.insertRow(row)  # Вставляем новую строку
-            for column in range(self.contracts_model.columnCount()):
-                item_data = self.contracts_model.data(self.contracts_model.index(row, column))
-
-                item = qtw.QTableWidgetItem()
-                if column in [1, 2, 3, 4, 5, 8]:  # Запрет редактирования для 1-5 колонок
-                    item.setText(str(item_data))  # Для остальных значений
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
-                else:
-                    if isinstance(item_data, bool):  # Если это логическое значение
-                        item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
-                        item.setFlags(
-                            item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
-                            Qt.ItemFlag.ItemIsSelectable)
-                    else:
-                        item.setText(str(item_data))  # Для остальных значений
-                        item.setFlags(
-                            item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable | ~Qt.ItemFlag.ItemIsUserCheckable)
-
-                self.tableWidget_Contracts.setItem(row, column, item)
-
-        # Включаем сортировку
-        self.tableWidget_Contracts.setSortingEnabled(True)
 
     def on_item_changed(self, item):
         row = item.row()
         column = item.column()
 
-        logging.debug(f'Item changed at row {row}, column {column}. New value: {item.text()}')
-
-        if column in [7, 9]:  # для checkbox колонок
+        if column in [7, 9, 10]:  # для checkbox колонок
             new_state = item.checkState() == Qt.CheckState.Checked
-            # logging.debug(f'Checkbox state changed at row {row}, column {column}. New state: {new_state}')
             self.update_database(row, column, new_state)
         else:  # для текстовых ячеек
             new_value = item.text()  # получаем новое текстовое значение
-            # logging.debug(f'Text value changed at row {row}, column {column}. New value: {new_value}')
             self.update_database(row, column, new_value)
 
     def update_database(self, row, column, new_value):
@@ -93,6 +55,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 7: "signed",
                 8: "cancel_date",
                 9: "cancel_agreement_signed",
+                10: "without_payment"
             }
 
             column_name = column_map.get(column)
@@ -122,16 +85,18 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.tableWidget_Contracts.setColumnHidden(0, True)  # Скрываем ID
         self.tableWidget_Contracts.setColumnWidth(1, 50)
         self.tableWidget_Contracts.setColumnWidth(2, 80)
-        self.tableWidget_Contracts.setColumnWidth(3, 200)
-        self.tableWidget_Contracts.setColumnWidth(4, 160)
-        self.tableWidget_Contracts.setColumnWidth(5, 100)
-        self.tableWidget_Contracts.setColumnWidth(6, 200)
+        self.tableWidget_Contracts.setColumnWidth(3, 250)
+        self.tableWidget_Contracts.setColumnWidth(4, 150)
+        self.tableWidget_Contracts.setColumnWidth(5, 110)
+        self.tableWidget_Contracts.setColumnWidth(6, 170)
         self.tableWidget_Contracts.setColumnWidth(7, 50)
         self.tableWidget_Contracts.setColumnWidth(8, 80)
         self.tableWidget_Contracts.setColumnWidth(9, 50)
+        self.tableWidget_Contracts.setColumnWidth(10, 50)
 
         self.tableWidget_Contracts.setHorizontalHeaderLabels(['ID', 'Номер', 'Дата', 'Ребенок', 'Кружок', 'Группа',
-                                                              'Примечание', 'Подп.', 'Дата раст.', 'Согл.подп.'])
+                                                              'Примечание', 'Дог.\nподп.', 'Дата\nрасторж.',
+                                                              'Согл.\nподп.', 'Без\nоплат'])
 
     def on_cell_double_clicked(self, row, column):
         if column in [8,]:  # Проверяем, что это 8 колонка
@@ -145,3 +110,77 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                     new_value = None
                 self.tableWidget_Contracts.item(row, column).setText(new_value)
                 self.update_database(row, column, new_value)
+
+
+    def tbl_contracts_view(self):
+        """ Инициализация таблицы с данными без фильтрации. """
+        # Создаем модели для таблиц
+        self.contracts_model = QtSql.QSqlTableModel(self)
+        self.contracts_model.setTable('contracts_view')
+        self.contracts_model.select()
+
+        self.update_table()
+
+    def update_table(self):
+        """ Обновляет содержимое QTableWidget на основе данных модели. """
+        self.tableWidget_Contracts.setRowCount(0)  # Очищаем существующие данные
+        self.tableWidget_Contracts.setColumnCount(
+            self.contracts_model.columnCount())  # Устанавливаем количество столбцов
+
+        # Отключаем отображение номеров строк
+        self.tableWidget_Contracts.verticalHeader().setVisible(False)
+
+        # Заполнение QTableWidget данными из модели
+        for row in range(self.contracts_model.rowCount()):
+            self.tableWidget_Contracts.insertRow(row)  # Вставляем новую строку
+            for column in range(self.contracts_model.columnCount()):
+                item_data = self.contracts_model.data(self.contracts_model.index(row, column))
+
+                item = qtw.QTableWidgetItem()
+                if column in [1, 2, 3, 4, 5, 8]:  # Запрет редактирования для 1-5 колонок
+                    item.setText(str(item_data))  # Для остальных значений
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
+                else:
+                    if isinstance(item_data, bool):  # Если это логическое значение
+                        item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
+                        item.setFlags(
+                            item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
+                            Qt.ItemFlag.ItemIsSelectable)
+                    else:
+                        item.setText(str(item_data))  # Для остальных значений
+                        item.setFlags(
+                            item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable | ~Qt.ItemFlag.ItemIsUserCheckable)
+
+                self.tableWidget_Contracts.setItem(row, column, item)
+
+        # Включаем сортировку
+        self.tableWidget_Contracts.setSortingEnabled(True)
+
+    def filter_data(self):
+        """ Фильтрация данных в таблице на основе ввода пользователя. """
+        try:
+            # Отключаем сигнал itemChanged перед фильтрацией
+            self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
+            # Получаем текст фильтра из строки ввода
+            filter_text = self.lineEdit_FilterChild.text().strip()
+
+            # Проверяем наличие текста для фильтрации
+            if filter_text:
+                # Формируем условие фильтрации с использованием ILIKE для нечувствительности к регистру
+                query = f"SELECT * FROM contracts_view WHERE child_fio ILIKE '%{filter_text}%'"
+                self.contracts_model.setQuery(query)
+            else:
+                # Если фильтр пустой, сбрасываем фильтрацию с первоначальным запросом
+                self.contracts_model.setTable('contracts_view')
+                self.contracts_model.select()
+
+            # Обновляем таблицу
+            self.update_table()  # Теперь вызываем метод обновления таблицы
+
+        except Exception as e:
+            logging.error("Ошибка фильтрации: %s", str(e))
+            qtw.QMessageBox.critical(self, "Ошибка", str(e))
+        finally:
+            # Подключаем сигнал обратно после выполнения фильтрации
+            self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
+
