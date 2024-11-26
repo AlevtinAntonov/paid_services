@@ -82,7 +82,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_CntractNumber">
+                <widget class="QLineEdit" name="lineEdit_ContractNumber">
                  <property name="font">
                   <font>
                    <family>Times New Roman</family>
@@ -270,7 +270,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_CntractRemaks">
+                <widget class="QLineEdit" name="lineEdit_ContractRemaks">
                  <property name="font">
                   <font>
                    <family>Times New Roman</family>
