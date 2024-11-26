@@ -79,16 +79,6 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             # logging.debug(f'Text value changed at row {row}, column {column}. New value: {new_value}')
             self.update_database(row, column, new_value)
 
-    def handle_date_input(self, input_value):
-        if input_value:
-            new_date = validate_and_convert_date(input_value)
-        if ("Неверный формат даты" not in new_date and "Неверная дата" not in new_date) or new_date in ["", None]:
-            return new_date
-            # date_edit.setDate(QtCore.QDate.fromString(new_date, "dd.MM.yyyy"))
-        else:
-            logging.debug(f'Ошибка в handle_date_input {input_value=} -> {new_date=} !!!')
-            return None
-
     def update_database(self, row, column, new_value):
         try:
             contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
@@ -106,27 +96,17 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             }
 
             column_name = column_map.get(column)
-            # logging.debug(f'Column index: {column}, Column name: {column_name}')
             if column_name is None:
                 logging.error(f"Invalid column index: {column}")
                 return  # Не продолжаем, если индекс невалидный
 
-            if column in [2, 8]:  # Столбцы, связанные с датами
-                formatted_date = self.handle_date_input(new_value)
-                if formatted_date:
-                    new_value = formatted_date
-
-            logging.debug(f'Preparing SQL update for: {column_name}, new_value={new_value}, contract_id={contract_id}')
-
             query = QtSql.QSqlQuery()
             query.prepare(f"UPDATE contracts SET {column_name} = :value WHERE contract_id = :id;")
-            print(f"1 update_database {new_value=}")
-            if new_value is None:
+            if new_value in [None, ""]:
                 query.bindValue(":value", None)  # Устанавливаем NULL в запрос
             else:
                 query.bindValue(":value", new_value)
             query.bindValue(":id", contract_id)
-            print(f"2 update_database {new_value=}")
 
             if not query.exec():
                 logging.error(f"Failed to update record: {query.lastError().text()}")
@@ -159,17 +139,9 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             dialog = DateDialog(current_value)  # Создаем диалог с текущим значением
             if dialog.exec() == qtw.QDialog.DialogCode.Accepted:  # Проверяем, нажал ли пользователь "ОК"
                 new_value = dialog.get_value()  # Получаем новое значение из диалога
-                self.update_date(row, column, new_value)  # Обновляем значение ячейки
-
-    def update_date(self, row, column, new_value):
-        if new_value not in ['', None]:
-            new_value = validate_and_convert_date(new_value)
-        else:
-            new_value = None
-        if ("Неверный формат даты" not in new_value and "Неверная дата" not in new_value) or new_value in ["", None]:
-            self.tableWidget_Contracts.item(row, column).setText(new_value)
-            logging.debug(f'date OK {new_value=} before update_database')
-            self.update_database(row, column, new_value)
-        else:
-            logging.debug(f'Ошибка в handle_date_input {new_value=}!!!')
-            return None
+                if new_value not in [None, '']:
+                    new_value = validate_and_convert_date(new_value)
+                if "Неверный формат даты" in new_value or "Неверная дата" in new_value or new_value in ["", None]:
+                    new_value = None
+                self.tableWidget_Contracts.item(row, column).setText(new_value)
+                self.update_database(row, column, new_value)
