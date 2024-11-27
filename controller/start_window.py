@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QMessageBox
 import logging
 
 from controller.date_dialog import DateDialog
-from controller.functions import get_lesson_names, get_team_names, validate_and_convert_date
+from controller.functions import get_lesson_names, get_team_names, validate_and_convert_date, get_parents_fio
 from model.db_connect import DatabaseConnector
 from view.main_window import Ui_MainWindow
 
@@ -196,6 +196,9 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             self.load_selected_contract(contract_id)
 
     def load_selected_contract(self, contract_id):
+        # Получаем список ФИО родителей
+        parents_fio = get_parents_fio()
+
         # Инициализация модели для выбранного контракта
         self.selected_contract_model = QtSql.QSqlTableModel(self)
         self.selected_contract_model.setTable('contracts_data')
@@ -219,16 +222,27 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                     return str(self.selected_contract_model.data(self.selected_contract_model.index(0, col)))
                 return ""
 
-            self.lineEdit_ContractNumber.setText(get_data(1)) # Получение номера контракта
+            self.lineEdit_ContractNumber.setText(get_data(1))  # Получение номера контракта
             self.lineEdit_ContractDate.setText(get_data(2))  # Получение даты
             self.lineEdit_ContractDateStart.setText(get_data(3))  # Начало договора
             self.lineEdit_ContractDateEnd.setText(get_data(4))  # Конец договора
-            # self.comboBox_ContractApplicant.setCurrentText(get_data(5))
+
+            # Очистка комбобокса перед заполнением
+            self.comboBox_ContractApplicant.clear()
+            self.comboBox_ContractApplicant.addItems(parents_fio)  # Заполнение значениями из базы данных
+
+            current_applicant = get_data(5)  # Получаем текущее значение из модели контрактов
+            if current_applicant in parents_fio:
+                self.comboBox_ContractApplicant.setCurrentText(
+                    current_applicant)  # Установите текущее значение если оно в списке
+            else:
+                print(f"Текущее значение '{current_applicant}' не найдено в списке родителей.")
 
             self.lineEdit_ContractRemaks.setText(get_data(8))  # Примечания
 
         else:
             print(f"Нет данных для contract_id: {contract_id}.")
+
 
 
 

@@ -3,6 +3,26 @@ from PyQt6 import QtSql, QtCore
 from datetime import datetime
 
 
+def get_parents_fio():
+    # Пример функции для получения имен уроков из базы данных
+    parents_fio = []
+    query = QtSql.QSqlQuery(
+        "SELECT parent_fio FROM parents_view")  # Измените на правильный запрос для получения названий уроков
+    while query.next():
+        parents_fio.append(query.value(0))  # Предполагаем, что названия уроков находятся в первой колонке
+    return parents_fio
+
+
+def get_child_fio():
+    # Пример функции для получения имен уроков из базы данных
+    child_fio = []
+    query = QtSql.QSqlQuery(
+        "SELECT child_fio FROM children_view")  # Измените на правильный запрос для получения названий уроков
+    while query.next():
+        child_fio.append(query.value(0))  # Предполагаем, что названия уроков находятся в первой колонке
+    return child_fio
+
+
 def get_lesson_names():
     # Пример функции для получения имен уроков из базы данных
     lesson_names = []
