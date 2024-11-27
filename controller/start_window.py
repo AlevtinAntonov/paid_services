@@ -188,76 +188,47 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
     def on_contract_selected(self):
         # Получаем выбранные индексы
         selected_indexes = self.tableWidget_Contracts.selectedIndexes()
-        print(selected_indexes)
         if selected_indexes:
             # Получаем строку из первого выбранного индекса
             row = selected_indexes[0].row()
-
             # Предполагаем, что ID договора находится в 0 столбце
             contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
             self.load_selected_contract(contract_id)
-    #
-    # def load_selected_contract(self, contract_id):
-    #     # Инициализация модели для выбранного контракта
-    #     self.selected_contract_model = QtSql.QSqlTableModel(self)
-    #     self.selected_contract_model.setTable('contracts')
-    #
-    #     # Установка фильтра по contract_id
-    #     self.selected_contract_model.setFilter(f"contract_id = {contract_id}")
-    #     self.selected_contract_model.select()  # Это загрузит данные согласно фильтру
-    #
-    #     # Проверка на ошибки после выполнения запроса
-    #     if self.selected_contract_model.lastError().isValid():
-    #         print("Ошибка запроса:", self.selected_contract_model.lastError().text())
-    #         return
-    #
-    #     # Обновление данных
-    #     if self.selected_contract_model.rowCount() > 0:
-    #         self.lineEdit_ContractNumber.setText(self.selected_contract_model.data(self.selected_contract_model.index(0, 1)))
-    #         self.lineEdit_ContractDate.setText(self.selected_contract_model.data(self.selected_contract_model.index(0, 2)))
-    #         self.lineEdit_ContractDateStart.setText(self.selected_contract_model.data(self.selected_contract_model.index(0, 3)))
-    #         self.lineEdit_ContractDateEnd.setText(self.selected_contract_model.data(self.selected_contract_model.index(0, 4)))
-    #         self.lineEdit_ContractRemaks.setText(self.selected_contract_model.data(self.selected_contract_model.index(0, 8)))
-    #
-    #         # Здесь вы можете обновить пользовательский интерфейс с данными из модели
-    #
-    #     else:
-    #         print(f"Нет данных для contract_id: {contract_id}.")
 
     def load_selected_contract(self, contract_id):
-        pass
-        # # Инициализация модели для выбранного контракта
-        # self.selected_contract_model = QtSql.QSqlTableModel(self)
-        # self.selected_contract_model.setTable('contracts')
-        #
-        # # Установка фильтра по contract_id
-        # self.selected_contract_model.setFilter(f"contract_id = {contract_id}")
-        # self.selected_contract_model.select()  # Это загрузит данные согласно фильтру
-        #
-        # # Проверка на ошибки после выполнения запроса
-        # if self.selected_contract_model.lastError().isValid():
-        #     print("Ошибка запроса:", self.selected_contract_model.lastError().text())
-        #     return
-        #
-        # # Обновление данных
-        # if self.selected_contract_model.rowCount() > 0:
-        #     logging.debug(f'{self.selected_contract_model.rowCount()=}')
-        #     self.selected_contract_model.index(0)  # Получение первой строки
-        #
-        #     # Установка данных в поля с дополнительными проверками
-        #     def get_data(col):
-        #         if self.selected_contract_model.data(self.selected_contract_model.index(0, col)) is not None:
-        #             return str(self.selected_contract_model.data(self.selected_contract_model.index(0, col)))
-        #         return ""
-        #
-        #     print(self.lineEdit_ContractNumber.setText(get_data(1)))  # Получение номера контракта
-        #     print(self.lineEdit_ContractDate.setText(get_data(2)))  # Получение даты
-        #     # self.lineEdit_ContractDateStart.setText(get_data(3))  # Начало договора
-        #     # self.lineEdit_ContractDateEnd.setText(get_data(4))  # Конец договора
-        #     # self.lineEdit_ContractRemaks.setText(get_data(8))  # Примечания
-        #
-        # else:
-        #     print(f"Нет данных для contract_id: {contract_id}.")
-        #
+        # Инициализация модели для выбранного контракта
+        self.selected_contract_model = QtSql.QSqlTableModel(self)
+        self.selected_contract_model.setTable('contracts_data')
+
+        # Установка фильтра по contract_id
+        self.selected_contract_model.setFilter(f"contract_id = {contract_id}")
+        self.selected_contract_model.select()  # Это загрузит данные согласно фильтру
+
+        # Проверка на ошибки после выполнения запроса
+        if self.selected_contract_model.lastError().isValid():
+            print("Ошибка запроса:", self.selected_contract_model.lastError().text())
+            return
+
+        # Обновление данных
+        if self.selected_contract_model.rowCount() > 0:
+            logging.debug(f'{self.selected_contract_model.rowCount()=}')
+
+            # Установка данных в поля с дополнительными проверками
+            def get_data(col):
+                if self.selected_contract_model.data(self.selected_contract_model.index(0, col)) is not None:
+                    return str(self.selected_contract_model.data(self.selected_contract_model.index(0, col)))
+                return ""
+
+            self.lineEdit_ContractNumber.setText(get_data(1)) # Получение номера контракта
+            self.lineEdit_ContractDate.setText(get_data(2))  # Получение даты
+            self.lineEdit_ContractDateStart.setText(get_data(3))  # Начало договора
+            self.lineEdit_ContractDateEnd.setText(get_data(4))  # Конец договора
+            # self.comboBox_ContractApplicant.setCurrentText(get_data(5))
+
+            self.lineEdit_ContractRemaks.setText(get_data(8))  # Примечания
+
+        else:
+            print(f"Нет данных для contract_id: {contract_id}.")
+
 
 
