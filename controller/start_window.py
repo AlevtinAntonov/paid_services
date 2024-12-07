@@ -46,6 +46,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             new_value = item.text()  # получаем новое текстовое значение
             self.update_database(row, column, new_value)
 
+
     def update_database(self, row, column, new_value):
         try:
             contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
