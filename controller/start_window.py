@@ -242,11 +242,11 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         # Получение введенных данных
         contract_number = self.lineEdit_ContractNumber.text() if self.lineEdit_ContractNumber.text() not in [None,
                                                                                                              ""] else None
-        contract_date = self.lineEdit_ContractDate.text() if self.lineEdit_ContractDate.text() not in [None,
+        contract_date = validate_and_convert_date(self.lineEdit_ContractDate.text()) if self.lineEdit_ContractDate.text() not in [None,
                                                                                                        ""] else None
-        contract_start_date = self.lineEdit_ContractDateStart.text() if self.lineEdit_ContractDateStart.text() not in [
+        contract_start_date = validate_and_convert_date(self.lineEdit_ContractDateStart.text()) if self.lineEdit_ContractDateStart.text() not in [
             None, ""] else None
-        contract_end_date = self.lineEdit_ContractDateEnd.text() if self.lineEdit_ContractDateEnd.text() not in [None,
+        contract_end_date = validate_and_convert_date(self.lineEdit_ContractDateEnd.text()) if self.lineEdit_ContractDateEnd.text() not in [None,
                                                                                                                  ""] else None
         parents_fio = self.comboBox_ContractApplicant.currentText() if self.comboBox_ContractApplicant.currentText() not in [
             None, ""] else None
@@ -291,6 +291,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 # self.contracts_model.select()
                 # Обновляем таблицу
                 self.table_contracts_view()  # Теперь вызываем метод обновления таблицы
+                self.load_selected_contract(self.contract_id)
                 # self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
 
         except Exception as e:
