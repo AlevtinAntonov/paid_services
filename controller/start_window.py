@@ -1,10 +1,12 @@
-from PyQt6 import QtWidgets as qtw, QtSql, QtCore
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMessageBox
 import logging
 
+from PyQt6 import QtWidgets as qtw, QtSql
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMessageBox
+
 from controller.date_dialog import DateDialog
-from controller.functions import get_lesson_names, get_team_names, validate_and_convert_date, get_parents_fio
+from controller.functions import validate_and_convert_date, get_data, get_data_from_db, populate_combobox, \
+    get_data_id_from_db
 from model.db_connect import DatabaseConnector
 from view.main_window import Ui_MainWindow
 
@@ -15,6 +17,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.contract_id = None
 
         self.lineEdit_FilterChild.textChanged.connect(self.filter_data)
 
@@ -23,13 +26,14 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         if not self.db_connector.connect():
             return  # Если подключение не удалось, выходим из конструктора
 
-        self.tbl_contracts_view()
-        self.setup_tbl_contracts_view()
-
         self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
         self.tableWidget_Contracts.itemSelectionChanged.connect(self.on_contract_selected)
         self.tableWidget_Contracts.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
+        # Подключаем сигнал нажатия кнопки к функции load_selected_contract
+        self.pushButton_SaveContactInfo.clicked.connect(self.save_selected_contract)
+        self.table_contracts_view()
+        self.setup_tbl_contracts_view()
 
     def on_item_changed(self, item):
         row = item.row()
@@ -100,8 +104,8 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                                                               'Согл.\nподп.', 'Без\nоплат'])
 
     def on_cell_double_clicked(self, row, column):
-        if column in [8,]:  # Проверяем, что это 8 колонка
-            current_value = self.tableWidget_Contracts.item(row, column).text() # Получаем текущее значение ячейки
+        if column in [8, ]:  # Проверяем, что это 8 колонка
+            current_value = self.tableWidget_Contracts.item(row, column).text()  # Получаем текущее значение ячейки
             dialog = DateDialog(current_value)  # Создаем диалог с текущим значением
             if dialog.exec() == qtw.QDialog.DialogCode.Accepted:  # Проверяем, нажал ли пользователь "ОК"
                 new_value = dialog.get_value()  # Получаем новое значение из диалога
@@ -112,17 +116,12 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.tableWidget_Contracts.item(row, column).setText(new_value)
                 self.update_database(row, column, new_value)
 
-
-    def tbl_contracts_view(self):
-        """ Инициализация таблицы с данными без фильтрации. """
-        # Создаем модели для таблиц
+    def table_contracts_view(self):
+        self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
         self.contracts_model = QtSql.QSqlTableModel(self)
         self.contracts_model.setTable('contracts_view')
         self.contracts_model.select()
 
-        self.update_table()
-
-    def update_table(self):
         """ Обновляет содержимое QTableWidget на основе данных модели. """
         self.tableWidget_Contracts.setRowCount(0)  # Очищаем существующие данные
         self.tableWidget_Contracts.setColumnCount(
@@ -155,7 +154,9 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.tableWidget_Contracts.setItem(row, column, item)
 
         # Включаем сортировку
-        self.tableWidget_Contracts.setSortingEnabled(True)
+        # self.tableWidget_Contracts.setSortingEnabled(True)
+        self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
+
 
     def filter_data(self):
         """ Фильтрация данных в таблице на основе ввода пользователя. """
@@ -176,7 +177,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.contracts_model.select()
 
             # Обновляем таблицу
-            self.update_table()  # Теперь вызываем метод обновления таблицы
+            self.table_contracts_view()  # Теперь вызываем метод обновления таблицы
 
         except Exception as e:
             logging.error("Ошибка фильтрации: %s", str(e))
@@ -186,18 +187,22 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
 
     def on_contract_selected(self):
+
         # Получаем выбранные индексы
         selected_indexes = self.tableWidget_Contracts.selectedIndexes()
         if selected_indexes:
             # Получаем строку из первого выбранного индекса
             row = selected_indexes[0].row()
             # Предполагаем, что ID договора находится в 0 столбце
-            contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
-            self.load_selected_contract(contract_id)
+            self.contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
+            print(f'on_contract_selected {self.contract_id=}')
+            self.load_selected_contract(self.contract_id)
 
     def load_selected_contract(self, contract_id):
         # Получаем список ФИО родителей
-        parents_fio = get_parents_fio()
+        parents_fio = get_data_from_db('parents')
+        child_fio = get_data_from_db('children')
+        lesson_names = get_data_from_db('lessons')
 
         # Инициализация модели для выбранного контракта
         self.selected_contract_model = QtSql.QSqlTableModel(self)
@@ -216,33 +221,76 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.selected_contract_model.rowCount() > 0:
             logging.debug(f'{self.selected_contract_model.rowCount()=}')
 
-            # Установка данных в поля с дополнительными проверками
-            def get_data(col):
-                if self.selected_contract_model.data(self.selected_contract_model.index(0, col)) is not None:
-                    return str(self.selected_contract_model.data(self.selected_contract_model.index(0, col)))
-                return ""
-
-            self.lineEdit_ContractNumber.setText(get_data(1))  # Получение номера контракта
-            self.lineEdit_ContractDate.setText(get_data(2))  # Получение даты
-            self.lineEdit_ContractDateStart.setText(get_data(3))  # Начало договора
-            self.lineEdit_ContractDateEnd.setText(get_data(4))  # Конец договора
-
-            # Очистка комбобокса перед заполнением
-            self.comboBox_ContractApplicant.clear()
-            self.comboBox_ContractApplicant.addItems(parents_fio)  # Заполнение значениями из базы данных
-
-            current_applicant = get_data(5)  # Получаем текущее значение из модели контрактов
-            if current_applicant in parents_fio:
-                self.comboBox_ContractApplicant.setCurrentText(
-                    current_applicant)  # Установите текущее значение если оно в списке
-            else:
-                print(f"Текущее значение '{current_applicant}' не найдено в списке родителей.")
-
-            self.lineEdit_ContractRemaks.setText(get_data(8))  # Примечания
+            self.lineEdit_ContractNumber.setText(get_data(self.selected_contract_model, 1))
+            self.lineEdit_ContractDate.setText(get_data(self.selected_contract_model, 2))  # Получение даты
+            self.lineEdit_ContractDateStart.setText(get_data(self.selected_contract_model, 3))  # Начало договора
+            self.lineEdit_ContractDateEnd.setText(get_data(self.selected_contract_model, 4))  # Конец договора
+            populate_combobox(self.selected_contract_model, self.comboBox_ContractApplicant, parents_fio, 5)
+            populate_combobox(self.selected_contract_model, self.comboBox_ContractChild, child_fio, 6)
+            populate_combobox(self.selected_contract_model, self.comboBox_ContractLessons, lesson_names, 7)
+            self.lineEdit_ContractRemaks.setText(get_data(self.selected_contract_model, 8))  # Примечания
 
         else:
             print(f"Нет данных для contract_id: {contract_id}.")
+        print(f'1 load_selected_contract {contract_id=}')
 
+    def save_selected_contract(self):
 
+        print(f'save_selected_contract {self.contract_id=}')
 
+        # Получение введенных данных
+        contract_number = self.lineEdit_ContractNumber.text() if self.lineEdit_ContractNumber.text() not in [None,
+                                                                                                             ""] else None
+        contract_date = self.lineEdit_ContractDate.text() if self.lineEdit_ContractDate.text() not in [None,
+                                                                                                       ""] else None
+        contract_start_date = self.lineEdit_ContractDateStart.text() if self.lineEdit_ContractDateStart.text() not in [
+            None, ""] else None
+        contract_end_date = self.lineEdit_ContractDateEnd.text() if self.lineEdit_ContractDateEnd.text() not in [None,
+                                                                                                                 ""] else None
+        parents_fio = self.comboBox_ContractApplicant.currentText() if self.comboBox_ContractApplicant.currentText() not in [
+            None, ""] else None
+        child_fio = self.comboBox_ContractChild.currentText() if self.comboBox_ContractChild.currentText() not in [None,
+                                                                                                                   ""] else None
+        lesson_name = self.comboBox_ContractLessons.currentText() if self.comboBox_ContractLessons.currentText() not in [
+            None, ""] else None
+        remarks = self.lineEdit_ContractRemaks.text() if self.lineEdit_ContractRemaks.text() not in [None, ""] else None
 
+        print(contract_number, contract_date, contract_start_date, contract_end_date, parents_fio, child_fio,
+              lesson_name, remarks)
+
+        applicant_id = get_data_id_from_db('parents', parents_fio)
+        child_id = get_data_id_from_db('children', child_fio)
+        lesson_id = get_data_id_from_db('lessons', lesson_name)
+        print(applicant_id, child_id, lesson_id)
+        # Логика для сохранения данных в базу данных
+        try:
+            query = QtSql.QSqlQuery()
+            query.prepare(f"UPDATE contracts SET contract_number = :c_number, contract_date = :c_date, "
+                          f"contract_start_date = :c_start_date, contract_end_date = :c_end_date, "
+                          f"parent_id = :applicant_id, child_id = :child_id, lesson_id = :lesson_id,"
+                          f"remarks = :remarks WHERE contract_id = :id;")
+            query.bindValue(":c_number", contract_number)
+            query.bindValue(":c_date", contract_date)
+            query.bindValue(":c_start_date", contract_start_date)
+            query.bindValue(":c_end_date", contract_end_date)
+            query.bindValue(":applicant_id", applicant_id)
+            query.bindValue(":child_id", child_id)
+            query.bindValue(":lesson_id", lesson_id)
+            query.bindValue(":remarks", remarks)
+            query.bindValue(":id", self.contract_id)
+
+            if not query.exec():
+                logging.error(f"Failed to update record: {query.lastError().text()}")
+                QMessageBox.critical(None, "Ошибка", "Не удалось обновить запись:\n" + query.lastError().text())
+                return False
+            else:
+                logging.debug("Record updated successfully.")
+                # self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
+                # self.contracts_model.setTable('contracts_view')
+                # self.contracts_model.select()
+                # Обновляем таблицу
+                self.table_contracts_view()  # Теперь вызываем метод обновления таблицы
+                # self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
+
+        except Exception as e:
+            logging.error(f"Ошибка при обновлении базы данных: {e}")

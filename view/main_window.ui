@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1210</width>
-    <height>775</height>
+    <width>1307</width>
+    <height>806</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
        <attribute name="title">
         <string>Договоры ДУ</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_11">
           <item>
@@ -65,9 +65,9 @@
           </item>
           <item>
            <widget class="QWidget" name="widget_ContractInfo" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_2">
+            <layout class="QVBoxLayout" name="verticalLayout">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1,1">
+              <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,3,1,5">
                <item>
                 <widget class="QLabel" name="label">
                  <property name="font">
@@ -281,6 +281,16 @@
                </item>
               </layout>
              </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_SaveContactInfo">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Сохранить изменения</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -367,8 +377,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1210</width>
-     <height>26</height>
+     <width>1307</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -437,8 +447,6 @@
    </property>
   </action>
  </widget>
- <resources>
-  <include location="../img/img.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

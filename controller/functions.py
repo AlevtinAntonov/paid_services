@@ -1,51 +1,101 @@
-from PyQt6 import QtSql, QtCore
+from PyQt6 import QtCore, QtSql
 
 from datetime import datetime
 
+from model.db_connect import DatabaseConnector
 
-def get_parents_fio():
-    # Пример функции для получения имен уроков из базы данных
-    parents_fio = []
-    query = QtSql.QSqlQuery(
-        "SELECT parent_fio FROM parents_view")  # Измените на правильный запрос для получения названий уроков
+
+def get_data_from_db(data_type):
+    """
+    Получает данные из базы данных в зависимости от типа запрашиваемых данных.
+
+    :param data_type: Тип запрашиваемых данных ('parents', 'children', 'lessons', 'teams')
+    :return: Список с данными
+    """
+    data = []
+    if data_type == 'parents':
+        query = QtSql.QSqlQuery("SELECT parent_fio FROM parents_view")
+    elif data_type == 'children':
+        query = QtSql.QSqlQuery("SELECT child_fio FROM children_view")
+    elif data_type == 'lessons':
+        query = QtSql.QSqlQuery("SELECT lesson_building FROM lessons_view")
+    elif data_type == 'teams':
+        query = QtSql.QSqlQuery("SELECT team_name FROM teams")
+    else:
+        raise ValueError("Неверный тип данных. Используйте 'parents', 'children', 'lessons' или 'teams'.")
+
     while query.next():
-        parents_fio.append(query.value(0))  # Предполагаем, что названия уроков находятся в первой колонке
-    return parents_fio
+        data.append(query.value(0))
+    return data
+
+def get_data_id_from_db(data_type, data):
+    """
+    Получает данные из базы данных в зависимости от типа запрашиваемых данных.
+    :param data_type: Тип запрашиваемых данных ('parents', 'children', 'lessons', 'teams')
+    :param data: Значение для поиска
+    :return: person_id, lesson_id или team_id
+    """
+    query = QtSql.QSqlQuery()
+
+    if data_type == 'parents':
+        query.prepare("SELECT person_id FROM parents_view WHERE parent_fio = :data")
+    elif data_type == 'children':
+        query.prepare("SELECT person_id FROM children_view WHERE child_fio = :data")
+    elif data_type == 'lessons':
+        query.prepare("SELECT lesson_id FROM lessons_view WHERE lesson_building = :data")
+    elif data_type == 'teams':
+        query.prepare("SELECT team_id FROM teams WHERE team_name = :data")
+    else:
+        raise ValueError("Неверный тип данных. Используйте 'parents', 'children', 'lessons' или 'teams'.")
+
+    query.bindValue(":data", data)
+
+    if query.exec():
+        if query.next():
+            return query.value(0)
+        else:
+            print("No data found.")
+            return None
+    else:
+        print("Query execution failed:", query.lastError().text())
+        return None
+
+def get_data(selected_name, col):
+    """
+    Получает данные из модели по указанной колонке.
+
+    :param selected_name: объект модели данных
+    :param col: индекс колонки
+    :return: строковое значение из модели или пустая строка
+    """
+    if selected_name.data(selected_name.index(0, col)) is not None:
+        return str(selected_name.data(selected_name.index(0, col)))
+    return ""
 
 
-def get_child_fio():
-    # Пример функции для получения имен уроков из базы данных
-    child_fio = []
-    query = QtSql.QSqlQuery(
-        "SELECT child_fio FROM children_view")  # Измените на правильный запрос для получения названий уроков
-    while query.next():
-        child_fio.append(query.value(0))  # Предполагаем, что названия уроков находятся в первой колонке
-    return child_fio
+def populate_combobox(model_name, item_name, items_list, col):
+    """
+    Заполняет указанный комбобокс значениями из списка.
 
+    :param item_name: Имя комбобокса (например, comboBox_ContractApplicant)
+    :param items_list: Список значений для заполнения комбобокса
+    """
+    # Очистка комбобокса перед заполнением
+    item_name.clear()
+    item_name.addItems(items_list)  # Заполнение значениями из списка
 
-def get_lesson_names():
-    # Пример функции для получения имен уроков из базы данных
-    lesson_names = []
-    query = QtSql.QSqlQuery(
-        "SELECT lesson_name FROM lessons")  # Измените на правильный запрос для получения названий уроков
-    while query.next():
-        lesson_names.append(query.value(0))  # Предполагаем, что названия уроков находятся в первой колонке
-    return lesson_names
-
-
-def get_team_names():
-    # Пример функции для получения названий команд из базы данных
-    team_names = []
-    query = QtSql.QSqlQuery(
-        "SELECT team_name FROM teams")  # Измените на правильный запрос для получения названий команд
-    while query.next():
-        team_names.append(query.value(0))  # Предполагаем, что названия команд находятся в первой колонке
-    return team_names
+    current_data = get_data(model_name, col)  # Получаем текущее значение из модели контрактов
+    if current_data in items_list:
+        item_name.setCurrentText(current_data)  # Устанавливаем текущее значение если оно в списке
+    else:
+        print(f"Текущее значение '{current_data}' не найдено в списке.")
 
 
 def validate_and_convert_date(input_date: str) -> str:
     # Заменяем любые разделители на точки
-    input_date = input_date.replace('/', '.').replace('-', '.').replace(' ', '.').replace(',', '.').replace('#', '.').replace(':', '.')
+    input_date = input_date.replace('/', '.').replace('-', '.').replace(' ', '.').replace(',', '.').replace('#',
+                                                                                                            '.').replace(
+        ':', '.')
 
     # Разделяем строку на компоненты даты
     parts = input_date.split('.')
@@ -95,5 +145,17 @@ def validate_and_convert_date(input_date: str) -> str:
 
 
 if __name__ == '__main__':
-    text = input("Enter any date: ")
-    print(validate_and_convert_date(text))
+    db_connector = DatabaseConnector()
+    if not db_connector.connect():
+        print('No database connected.')
+    else:
+        print('Database connected.')
+        applicant_id = get_data_id_from_db('parents', 'Ванаг Екатерина Олеговна')
+        print(applicant_id)
+    # app = QtCore.QCoreApplication([])
+    # print("Available Drivers 1:", QtSql.QSqlDatabase.drivers())
+    #
+    # db_driver = QtSql.QSqlDatabase.drivers()
+    # print("Available Drivers 2:", QtSql.QSqlDatabase.drivers())
+
+
