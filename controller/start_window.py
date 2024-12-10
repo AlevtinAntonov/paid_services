@@ -2,7 +2,8 @@ import logging
 
 from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox, QTableView
+from PyQt6.QtSql import QSqlQuery
 
 from controller.date_dialog import DateDialog
 from controller.functions import validate_and_convert_date, get_data, get_data_from_db, populate_combobox, \
@@ -11,6 +12,36 @@ from model.db_connect import DatabaseConnector
 from view.main_window import Ui_MainWindow
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+def fill_table_widget(model, table_widget, non_editable_columns):
+    """Обновляет содержимое QTableWidget на основе данных модели."""
+    table_widget.setRowCount(0)  # Очищаем существующие данные
+    table_widget.setColumnCount(model.columnCount())  # Устанавливаем количество столбцов
+    table_widget.verticalHeader().setVisible(False)  # Отключаем отображение номеров строк
+
+    # Заполнение QTableWidget данными из модели
+    for row in range(model.rowCount()):
+        table_widget.insertRow(row)  # Вставляем новую строку
+        for column in range(model.columnCount()):
+            item_data = model.data(model.index(row, column))
+            item = qtw.QTableWidgetItem()
+
+            # Если колонка не редактируемая
+            if column in non_editable_columns:
+                item.setText(str(item_data))  # Для других значений
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
+            else:
+                if isinstance(item_data, bool):  # Если это логическое значение
+                    item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
+                                  Qt.ItemFlag.ItemIsSelectable)
+                else:
+                    item.setText(str(item_data))  # Для остальных значений
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable |
+                                  ~Qt.ItemFlag.ItemIsUserCheckable)
+
+            table_widget.setItem(row, column, item)
 
 
 class StartWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -32,8 +63,13 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
 
         # Подключаем сигнал нажатия кнопки к функции load_selected_contract
         self.pushButton_SaveContactInfo.clicked.connect(self.save_selected_contract)
+        self.pushButton_NewContract.clicked.connect(self.add_new_contract)
+        self.pushButton_PrintContract.clicked.connect(self.print_selected_contract)
+        self.pushButton_Close.clicked.connect(self.close)
         self.table_contracts_view()
         self.setup_tbl_contracts_view()
+        self.table_invoices_view()
+        self.setup_tbl_invoices_view()
 
     def on_item_changed(self, item):
         row = item.row()
@@ -41,28 +77,38 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
 
         if column in [7, 9, 10]:  # для checkbox колонок
             new_state = item.checkState() == Qt.CheckState.Checked
-            self.update_database(row, column, new_state)
+            self.update_database(row, column, new_state, 'contracts')
         else:  # для текстовых ячеек
             new_value = item.text()  # получаем новое текстовое значение
-            self.update_database(row, column, new_value)
+            self.update_database(row, column, new_value, 'contracts')
 
 
-    def update_database(self, row, column, new_value):
+    def update_database(self, row, column, new_value, tbl_name):
         try:
             contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
-
-            column_map = {
-                0: "contract_id",
-                1: "contract_number",
-                2: "contract_date",
-                4: "lesson_name",
-                5: "team_name",
-                6: "remarks",
-                7: "signed",
-                8: "cancel_date",
-                9: "cancel_agreement_signed",
-                10: "without_payment"
-            }
+            if tbl_name == 'contracts':
+                column_map = {
+                    0: "contract_id",
+                    1: "contract_number",
+                    2: "contract_date",
+                    4: "lesson_name",
+                    5: "team_name",
+                    6: "remarks",
+                    7: "signed",
+                    8: "cancel_date",
+                    9: "cancel_agreement_signed",
+                    10: "without_payment"
+                }
+            elif tbl_name == 'invoices':
+                column_map = {
+                    0: "contract_id",
+                    1: "month_name",
+                    3: "sum_paid",
+                    4: "payment_date",
+                    5: "rest_of_money",
+                    6: "lessons_per_month",
+                    7: "remarks",
+                }
 
             column_name = column_map.get(column)
             if column_name is None:
@@ -70,7 +116,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 return  # Не продолжаем, если индекс невалидный
 
             query = QtSql.QSqlQuery()
-            query.prepare(f"UPDATE contracts SET {column_name} = :value WHERE contract_id = :id;")
+            query.prepare(f"UPDATE {tbl_name} SET {column_name} = :value WHERE contract_id = :id;")
             if new_value in [None, ""]:
                 query.bindValue(":value", None)  # Устанавливаем NULL в запрос
             else:
@@ -103,6 +149,18 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.tableWidget_Contracts.setHorizontalHeaderLabels(['ID', 'Номер', 'Дата', 'Ребенок', 'Кружок', 'Группа',
                                                               'Примечание', 'Дог.\nподп.', 'Дата\nрасторж.',
                                                               'Согл.\nподп.', 'Без\nоплат'])
+    def setup_tbl_invoices_view(self):
+        self.tableWidget_Invoices.setColumnHidden(0, True)  # Скрываем ID
+        self.tableWidget_Invoices.setColumnWidth(1, 100)
+        self.tableWidget_Invoices.setColumnWidth(2, 80)
+        self.tableWidget_Invoices.setColumnWidth(3, 80)
+        self.tableWidget_Invoices.setColumnWidth(4, 100)
+        self.tableWidget_Invoices.setColumnWidth(5, 100)
+        self.tableWidget_Invoices.setColumnWidth(6, 80)
+        self.tableWidget_Invoices.setColumnWidth(7, 200)
+
+        self.tableWidget_Invoices.setHorizontalHeaderLabels(['ID', 'Месяц', 'К\nоплате', 'Оплачено', 'Дата\nоплаты', 'Остаток',
+                                                              'Занятий\nв месяц', 'Примечания'])
 
     def on_cell_double_clicked(self, row, column):
         if column in [8, ]:  # Проверяем, что это 8 колонка
@@ -115,7 +173,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 if "Неверный формат даты" in new_value or "Неверная дата" in new_value or new_value in ["", None]:
                     new_value = None
                 self.tableWidget_Contracts.item(row, column).setText(new_value)
-                self.update_database(row, column, new_value)
+                self.update_database(row, column, new_value, 'contracts')
 
     def table_contracts_view(self):
         self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
@@ -123,40 +181,15 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.contracts_model.setTable('contracts_view')
         self.contracts_model.select()
 
-        """ Обновляет содержимое QTableWidget на основе данных модели. """
-        self.tableWidget_Contracts.setRowCount(0)  # Очищаем существующие данные
-        self.tableWidget_Contracts.setColumnCount(
-            self.contracts_model.columnCount())  # Устанавливаем количество столбцов
-
-        # Отключаем отображение номеров строк
-        self.tableWidget_Contracts.verticalHeader().setVisible(False)
-
-        # Заполнение QTableWidget данными из модели
-        for row in range(self.contracts_model.rowCount()):
-            self.tableWidget_Contracts.insertRow(row)  # Вставляем новую строку
-            for column in range(self.contracts_model.columnCount()):
-                item_data = self.contracts_model.data(self.contracts_model.index(row, column))
-
-                item = qtw.QTableWidgetItem()
-                if column in [1, 2, 3, 4, 5, 8]:  # Запрет редактирования для 1-5 колонок
-                    item.setText(str(item_data))  # Для остальных значений
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
-                else:
-                    if isinstance(item_data, bool):  # Если это логическое значение
-                        item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
-                        item.setFlags(
-                            item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
-                            Qt.ItemFlag.ItemIsSelectable)
-                    else:
-                        item.setText(str(item_data))  # Для остальных значений
-                        item.setFlags(
-                            item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable | ~Qt.ItemFlag.ItemIsUserCheckable)
-
-                self.tableWidget_Contracts.setItem(row, column, item)
-
-        # Включаем сортировку
-        # self.tableWidget_Contracts.setSortingEnabled(True)
+        fill_table_widget(self.contracts_model, self.tableWidget_Contracts, [1, 2, 3, 4, 5, 8])
         self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
+
+    def table_invoices_view(self):
+        self.invoices_model = QtSql.QSqlTableModel(self)
+        self.invoices_model.setTable('invoices_view')
+        self.invoices_model.select()
+
+        fill_table_widget(self.invoices_model, self.tableWidget_Invoices, [2])
 
 
     def filter_data(self):
@@ -296,3 +329,10 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
 
         except Exception as e:
             logging.error(f"Ошибка при обновлении базы данных: {e}")
+
+
+    def add_new_contract(self):
+        print(f'add_new_contract pressed {self.contract_id=}')
+
+    def print_selected_contract(self):
+        print(f'print_selected_contract pressed {self.contract_id=}')
