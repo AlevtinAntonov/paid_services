@@ -2,8 +2,7 @@ import logging
 
 from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMessageBox, QTableView
-from PyQt6.QtSql import QSqlQuery
+from PyQt6.QtWidgets import QMessageBox
 
 from controller.date_dialog import DateDialog
 from controller.functions import validate_and_convert_date, get_data, get_data_from_db, populate_combobox, \
@@ -14,7 +13,6 @@ from view.main_window import Ui_MainWindow
 logging.basicConfig(level=logging.DEBUG)
 
 def fill_table_widget(model, table_widget, non_editable_columns):
-    print(' in fill_table_widget')
     """Обновляет содержимое QTableWidget на основе данных модели."""
     table_widget.setRowCount(0)  # Очищаем существующие данные
     table_widget.setColumnCount(model.columnCount())  # Устанавливаем количество столбцов
@@ -22,7 +20,6 @@ def fill_table_widget(model, table_widget, non_editable_columns):
 
     # Заполнение QTableWidget данными из модели
     for row in range(model.rowCount()):
-        print(row)
         table_widget.insertRow(row)  # Вставляем новую строку
         for column in range(model.columnCount()):
             item_data = model.data(model.index(row, column))
@@ -64,10 +61,9 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.tableWidget_Contracts.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
         self.tableWidget_Invoices.itemChanged.connect(self.on_item_changed_invoices)
-        # self.tableWidget_Invoices.itemChanged.connect(self.on_item_changed_log)
         self.tableWidget_Invoices.itemSelectionChanged.connect(self.on_invoice_selected)
 
-
+        self.tableWidget_VisitLog.itemChanged.connect(self.on_item_changed_visit_log)
 
         # Подключаем сигнал нажатия кнопки к функции load_selected_contract
         self.pushButton_SaveContactInfo.clicked.connect(self.save_selected_contract)
@@ -101,12 +97,18 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 new_value = validate_and_convert_date(item.text()) if item.text() not in [None, ""] else None
             self.update_database(row, column, new_value, 'payments')
 
-    def on_item_changed_log(self, item):
-        pass
+    def on_item_changed_visit_log(self, item):
+        row = item.row()
+        column = item.column()
+        if column in [2, 3, 4, 5]:
+            new_value = int(item.text())  # получаем цифровое значение
+        else:
+            new_value = item.text() # получаем новое текстовое значение
+        self.update_database(row, column, new_value, 'visit_log')
 
     def update_database(self, row, column, new_value, tbl_name):
         try:
-            print(f"{row=} {column=} {new_value=} {tbl_name=}")
+            print(f"{row=} {column=} {new_value=} {tbl_name=}") # отладочная инфо
             if tbl_name == 'contracts':
                 column_id = 'contract_id'
                 value_id = self.contracts_model.data(self.contracts_model.index(row, 0))
@@ -120,6 +122,16 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                     8: "cancel_date",
                     9: "cancel_agreement_signed",
                     10: "without_payment"
+                }
+            elif tbl_name == 'visit_log':
+                column_id = 'invoice_id'
+                value_id = self.visit_log_model.data(self.visit_log_model.index(row, 0))
+                column_map = {
+                    2: "lessons_fact",
+                    3: "lessons_illness",
+                    4: "lessons_quarantine",
+                    5: "lessons_other_reasons",
+                    6: "visit_log_remarks",
                 }
             elif tbl_name == 'invoices':
                 column_id = 'invoice_id'
@@ -282,7 +294,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.tableWidget_Invoices.itemChanged.connect(self.on_item_changed_invoices)
 
     def table_visit_log_view(self, contract_id):
-        # self.tableWidget_VisitLog.itemChanged.disconnect(self.on_item_changed_log)
+        self.tableWidget_VisitLog.itemChanged.disconnect(self.on_item_changed_visit_log)
         print('table_visit_log_view')
         self.visit_log_model = QtSql.QSqlTableModel(self)
         self.visit_log_model.setTable('visit_log_view')
@@ -299,38 +311,33 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             return
 
         fill_table_widget(self.visit_log_model, self.tableWidget_VisitLog, [1])
-        # self.tableWidget_VisitLog.itemChanged.connect(self.on_item_changed_log)
-
+        self.tableWidget_VisitLog.itemChanged.connect(self.on_item_changed_visit_log)
 
     def filter_data(self):
         """ Фильтрация данных в таблице на основе ввода пользователя. """
         try:
-            print("filter_data")
-            # Отключаем сигнал itemChanged перед фильтрацией
-            # self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
-            print("2 filter_data")
+            self.tableWidget_Contracts.itemChanged.disconnect(self.on_item_changed)
             # Получаем текст фильтра из строки ввода
             filter_text = self.lineEdit_FilterChild.text().strip()
-            print(f'filter_text = {filter_text}')
 
             # Проверяем наличие текста для фильтрации
             if filter_text:
-                # Формируем условие фильтрации с использованием ILIKE для нечувствительности к регистру
+                # Формируем условие фильтрации
                 query = f"SELECT * FROM contracts_view WHERE child_fio ILIKE '%{filter_text}%'"
                 self.contracts_model.setQuery(query)
+                if self.contracts_model.lastError().isValid():
+                    print("Ошибка выполнения запроса:", self.contracts_model.lastError().text())
             else:
-                # Если фильтр пустой, сбрасываем фильтрацию с первоначальным запросом
-                self.contracts_model.setTable('contracts_view')
-                self.contracts_model.select()
-            print('before table_contracts_view ')
+                # Если фильтр пустой, сбрасываем фильтрацию
+                self.contracts_model.setQuery("SELECT * FROM contracts_view")
+
             # Обновляем таблицу
-            self.table_contracts_view()  # Теперь вызываем метод обновления таблицы
+            fill_table_widget(self.contracts_model, self.tableWidget_Contracts,
+                              [1, 2, 3, 4, 5, 8])  # Заполняем таблицу заново
+            self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
         except Exception as e:
             logging.error("Ошибка фильтрации: %s", str(e))
             qtw.QMessageBox.critical(self, "Ошибка", str(e))
-        # finally:
-        #     self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
-
 
     def on_contract_selected(self):
 
