@@ -4,42 +4,15 @@ from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
 
+from controller.classes.table_info_dict import table_info
 from controller.date_dialog import DateDialog
+from controller.fill_tables import fill_table_widget
 from controller.functions import validate_and_convert_date, get_data, get_data_from_db, populate_combobox, \
-    get_data_id_from_db
+    get_data_id_from_db, get_input_value, get_combobox_value
 from model.db_connect import DatabaseConnector
 from view.main_window import Ui_MainWindow
 
 logging.basicConfig(level=logging.DEBUG)
-
-def fill_table_widget(model, table_widget, non_editable_columns):
-    """Обновляет содержимое QTableWidget на основе данных модели."""
-    table_widget.setRowCount(0)  # Очищаем существующие данные
-    table_widget.setColumnCount(model.columnCount())  # Устанавливаем количество столбцов
-    table_widget.verticalHeader().setVisible(False)  # Отключаем отображение номеров строк
-
-    # Заполнение QTableWidget данными из модели
-    for row in range(model.rowCount()):
-        table_widget.insertRow(row)  # Вставляем новую строку
-        for column in range(model.columnCount()):
-            item_data = model.data(model.index(row, column))
-            item = qtw.QTableWidgetItem()
-
-            # Если колонка не редактируемая
-            if column in non_editable_columns:
-                item.setText(str(item_data))  # Для других значений
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Убираем флаг редактирования
-            else:
-                if isinstance(item_data, bool):  # Если это логическое значение
-                    item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
-                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
-                                  Qt.ItemFlag.ItemIsSelectable)
-                else:
-                    item.setText(str(item_data))  # Для остальных значений
-                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable |
-                                  ~Qt.ItemFlag.ItemIsUserCheckable)
-
-            table_widget.setItem(row, column, item)
 
 
 class StartWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -48,12 +21,16 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.contract_id = None
 
-
-
         # Создаем экземпляр DatabaseConnector и подключаемся к базе данных
         self.db_connector = DatabaseConnector()
         if not self.db_connector.connect():
             return  # Если подключение не удалось, выходим из конструктора
+
+        self.setup_connections()
+        self.table_contracts_view()
+        self.setup_tbl_contracts_view()
+
+    def setup_connections(self):
         self.lineEdit_FilterChild.textChanged.connect(self.filter_data)
 
         self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
@@ -65,193 +42,161 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.tableWidget_VisitLog.itemChanged.connect(self.on_item_changed_visit_log)
 
-        # Подключаем сигнал нажатия кнопки к функции load_selected_contract
+        # Подключаем сигнал нажатия кнопки
         self.pushButton_SaveContactInfo.clicked.connect(self.save_selected_contract)
         self.pushButton_NewContract.clicked.connect(self.add_new_contract)
         self.pushButton_PrintContract.clicked.connect(self.print_selected_contract)
         self.pushButton_Close.clicked.connect(self.close)
-        self.table_contracts_view()
-        self.setup_tbl_contracts_view()
 
     def on_item_changed(self, item):
-        row = item.row()
-        column = item.column()
-
-        if column in [7, 9, 10]:  # для checkbox колонок
-            new_state = item.checkState() == Qt.CheckState.Checked
-            self.update_database(row, column, new_state, 'contracts')
-        else:  # для текстовых ячеек
-            new_value = item.text()  # получаем новое текстовое значение
-            self.update_database(row, column, new_value, 'contracts')
+        self.handle_item_changed(item, 'contracts')
 
     def on_item_changed_invoices(self, item):
-        row = item.row()
-        column = item.column()
-        if column in [0, 1, 5, 6, 7, 8,9]:
-            new_value = item.text()  # получаем новое текстовое значение
-            self.update_database(row, column, new_value, 'invoices')
-        elif column in [3, 4]:
-            if column == 3:
-                new_value = int(item.text())  # получаем цифровое значение
-            else:
-                new_value = validate_and_convert_date(item.text()) if item.text() not in [None, ""] else None
-            self.update_database(row, column, new_value, 'payments')
+        self.handle_item_changed(item, 'invoices', is_invoice=True)
 
     def on_item_changed_visit_log(self, item):
+        self.handle_item_changed(item, 'visit_log', is_visit_log=True)
+
+    def handle_item_changed(self, item, table, is_invoice=False, is_visit_log=False):
         row = item.row()
         column = item.column()
-        if column in [2, 3, 4, 5]:
-            new_value = int(item.text())  # получаем цифровое значение
-        else:
-            new_value = item.text() # получаем новое текстовое значение
-        self.update_database(row, column, new_value, 'visit_log')
+        new_value = item.text() if not item.checkState() == Qt.CheckState.Checked else item.checkState() == Qt.CheckState.Checked
+
+        if is_invoice and column in [0, 1, 5, 6, 7, 8, 9]:
+            new_value = item.text()
+        elif is_invoice and column in [3, 4]:
+            table = 'payments'
+            new_value = int(new_value) if column == 3 else validate_and_convert_date(new_value) or None
+        elif is_visit_log and column in [2, 3, 4, 5]:
+            new_value = int(new_value)
+
+        self.update_database(row, column, new_value, table)
 
     def update_database(self, row, column, new_value, tbl_name):
         try:
-            print(f"{row=} {column=} {new_value=} {tbl_name=}") # отладочная инфо
-            if tbl_name == 'contracts':
-                column_id = 'contract_id'
-                value_id = self.contracts_model.data(self.contracts_model.index(row, 0))
-                column_map = {
-                    1: "contract_number",
-                    2: "contract_date",
-                    4: "lesson_name",
-                    5: "team_name",
-                    6: "remarks",
-                    7: "signed",
-                    8: "cancel_date",
-                    9: "cancel_agreement_signed",
-                    10: "without_payment"
-                }
-            elif tbl_name == 'visit_log':
-                column_id = 'invoice_id'
-                value_id = self.visit_log_model.data(self.visit_log_model.index(row, 0))
-                column_map = {
-                    2: "lessons_fact",
-                    3: "lessons_illness",
-                    4: "lessons_quarantine",
-                    5: "lessons_other_reasons",
-                    6: "visit_log_remarks",
-                }
-            elif tbl_name == 'invoices':
-                column_id = 'invoice_id'
-                value_id = self.invoices_model.data(self.invoices_model.index(row, 8))
-                column_map = {
-                    1: "month_name",
-                    5: "rest_of_money",
-                    6: "lessons_per_month",
-                    7: "remarks",
-                }
-            elif tbl_name == 'payments':
-                column_id = 'payment_id'
-                value_id = self.invoices_model.data(self.invoices_model.index(row, 9))
-                invoice_id = self.invoices_model.data(self.invoices_model.index(row, 8))
-                col_name = 'sum_paid'
-                if column == 4:
-                    col_name = 'payment_date'
-                    print(f"{new_value=}")
+            print(f"{row=} {column=} {new_value=} {tbl_name=}")  # Отладочная информация
 
-                    print(new_value)
-                column_map = {
-                    3: "sum_paid",
-                    4: "payment_date",
-                }
-                # Проверяем, существует ли value_id в таблице payments
-                check_query = QtSql.QSqlQuery()
-                check_query.prepare(f"SELECT COUNT(*) FROM payments WHERE {column_id} = :id;")
-                check_query.bindValue(":id", value_id)
-                check_query.exec()
-                check_query.next()
-                exists = check_query.value(0) > 0  # Проверяем, если запись существует
-
-                if not exists:
-                    # Если записи не существует, добавляем новую строку
-                    insert_query = QtSql.QSqlQuery()
-                    insert_query.prepare(
-                        f"INSERT INTO payments (invoice_id, {col_name}) VALUES (:invoice_id, :col_data);")
-                    insert_query.bindValue(":invoice_id", invoice_id)
-                    insert_query.bindValue(":col_data", new_value)
-
-                    if not insert_query.exec():
-                        logging.error(f"Failed to insert new record: {insert_query.lastError().text()}")
-                        QMessageBox.critical(None, "Ошибка",
-                                             "Не удалось добавить новую запись:\n" + insert_query.lastError().text())
-                        return False
-                    else:
-                        logging.debug("Record inserted successfully.")
-                        return True  # Выходим после добавления новой записи
-            else:
+            table_info_selected = table_info.get(tbl_name)
+            if not table_info_selected:
+                logging.error(f"Unknown table name: {tbl_name}")
                 return
+
+            column_id = table_info_selected['column_id']
+            value_id = self.get_value_id(tbl_name, row, table_info_selected['value_id_index'])
+            column_map = table_info_selected['column_map']
+
+            # Специальная обработка для таблицы payments
+            if tbl_name == 'payments':
+                logging.debug(f'if tbl_name == payments')
+                return self.update_payment(row, column, new_value, value_id, table_info_selected)
 
             column_name = column_map.get(column)
             if column_name is None:
                 logging.error(f"Invalid column index: {column}")
-                return  # Не продолжаем, если индекс невалидный
+                return
 
-            query = QtSql.QSqlQuery()
-            query.prepare(f"UPDATE {tbl_name} SET {column_name} = :value WHERE {column_id} = :id;")
-            print(f"UPDATE {tbl_name} SET {column_name} = :value WHERE {column_id} = :id; {new_value=} {value_id=}")
-            if new_value in [None, ""]:
-                query.bindValue(":value", None)  # Устанавливаем NULL в запрос
-            else:
-                query.bindValue(":value", new_value)
-            query.bindValue(":id", value_id)
-
-            if not query.exec():
-                logging.error(f"Failed to update record: {query.lastError().text()}")
-                QMessageBox.critical(None, "Ошибка", "Не удалось обновить запись:\n" + query.lastError().text())
-                return False
-            else:
-                logging.debug("Record updated successfully.")
-                # self.table_contracts_view()
-                self.table_invoices_view(self.contract_id)
+            self.execute_update_query(tbl_name, column_name, new_value, column_id, value_id)
 
         except Exception as e:
             logging.error(f"Ошибка при обновлении базы данных: {e}")
-        # finally:
 
+    def get_value_id(self, tbl_name, row, value_id_index):
+        """ Получить идентификатор записи в зависимости от типа таблицы. """
+        if tbl_name == 'contracts':
+            return self.contracts_model.data(self.contracts_model.index(row, value_id_index))
+        elif tbl_name == 'visit_log':
+            return self.visit_log_model.data(self.visit_log_model.index(row, value_id_index))
+        elif tbl_name in ['invoices', 'payments']:
+            return self.invoices_model.data(self.invoices_model.index(row, value_id_index))
+        return None
+
+    def update_payment(self, row, column, new_value, value_id, table_info_selected):
+        """ Обновить данные в таблице payments. """
+        invoice_id = self.invoices_model.data(self.invoices_model.index(row, table_info_selected['invoice_id_index']))
+        column_name = table_info_selected['column_map'].get(column)
+
+        # Проверяем, существует ли value_id в таблице payments
+        query = QtSql.QSqlQuery()
+        query.prepare(f"SELECT COUNT(*) FROM payments WHERE {table_info_selected['column_id']} = :id")
+        query.bindValue(":id", value_id)
+        query.exec()
+        query.next()
+        exists = query.value(0) > 0
+
+        if not exists:
+            # Если записи не существует, добавляем новую строку
+            insert_query = QtSql.QSqlQuery()
+            insert_query.prepare(
+                f"INSERT INTO payments (invoice_id, {table_info_selected['column_map'][column]}) VALUES (:invoice_id, :col_data)"
+            )
+            insert_query.bindValue(":invoice_id", invoice_id)
+            insert_query.bindValue(":col_data", new_value)
+
+            if not insert_query.exec():
+                logging.error(f"Failed to insert new record: {insert_query.lastError().text()}")
+                QMessageBox.critical(None, "Ошибка",
+                                     "Не удалось добавить новую запись:\n" + insert_query.lastError().text())
+                return False
+
+            logging.debug("Record inserted successfully.")
+            return True  # Выходим после добавления новой записи
+
+            # Если запись существует, обновляем ее
+        return self.execute_update_query('payments', column_name, new_value, table_info_selected['column_id'], value_id)
+
+    def execute_update_query(self, tbl_name, column_name, new_value, column_id, value_id):
+        """ Выполнить обновление записи в таблице. """
+        query = QtSql.QSqlQuery()
+        query.prepare(f"UPDATE {tbl_name} SET {column_name} = :value WHERE {column_id} = :id")
+
+        print(f"Executing: UPDATE {tbl_name} SET {column_name} = :value WHERE {column_id} = :id")
+
+        if new_value in [None, ""]:
+            query.bindValue(":value", None)  # Устанавливаем NULL в запрос
+        else:
+            query.bindValue(":value", new_value)
+
+        query.bindValue(":id", value_id)
+
+        if not query.exec():
+            logging.error(f"Failed to update record: {query.lastError().text()}")
+            QMessageBox.critical(None, "Ошибка", "Не удалось обновить запись:\n" + query.lastError().text())
+            return False
+
+        logging.debug("Record updated successfully.")
+
+        # Зависит от типа таблицы, можно вызывать разные методы для обновления интерфейса
+        if tbl_name == 'contracts':
+            self.table_contracts_view()
+        elif tbl_name == 'invoices':
+            self.table_invoices_view(self.contract_id)
+
+        return True
+
+    def setup_table_view(self, table_widget, column_widths, headers):
+        table_widget.setColumnHidden(0, True)  # Скрываем ID
+        for index, width in enumerate(column_widths):
+            table_widget.setColumnWidth(index + 1, width)  # Учитываем, что ID находится на нулевом индексе
+        table_widget.setHorizontalHeaderLabels(headers)
 
     def setup_tbl_contracts_view(self):
-        self.tableWidget_Contracts.setColumnHidden(0, True)  # Скрываем ID
-        self.tableWidget_Contracts.setColumnWidth(1, 50)
-        self.tableWidget_Contracts.setColumnWidth(2, 80)
-        self.tableWidget_Contracts.setColumnWidth(3, 250)
-        self.tableWidget_Contracts.setColumnWidth(4, 150)
-        self.tableWidget_Contracts.setColumnWidth(5, 110)
-        self.tableWidget_Contracts.setColumnWidth(6, 170)
-        self.tableWidget_Contracts.setColumnWidth(7, 50)
-        self.tableWidget_Contracts.setColumnWidth(8, 80)
-        self.tableWidget_Contracts.setColumnWidth(9, 50)
-        self.tableWidget_Contracts.setColumnWidth(10, 50)
-
-        self.tableWidget_Contracts.setHorizontalHeaderLabels(['ID', 'Номер', 'Дата', 'Ребенок', 'Кружок', 'Группа',
-                                                              'Примечание', 'Дог.\nподп.', 'Дата\nрасторж.',
-                                                              'Согл.\nподп.', 'Без\nоплат'])
+        column_widths = [50, 80, 250, 150, 110, 170, 50, 80, 50, 50]
+        headers = ['ID', 'Номер', 'Дата', 'Ребенок', 'Кружок', 'Группа',
+                   'Примечание', 'Дог.\nподп.', 'Дата\nрасторж.',
+                   'Согл.\nподп.', 'Без\nоплат']
+        self.setup_table_view(self.tableWidget_Contracts, column_widths, headers)
 
     def setup_tbl_invoices_view(self):
-        self.tableWidget_Invoices.setColumnHidden(0, True)  # Скрываем ID
-        self.tableWidget_Invoices.setColumnWidth(1, 100)
-        self.tableWidget_Invoices.setColumnWidth(2, 80)
-        self.tableWidget_Invoices.setColumnWidth(3, 80)
-        self.tableWidget_Invoices.setColumnWidth(4, 100)
-        self.tableWidget_Invoices.setColumnWidth(5, 100)
-        self.tableWidget_Invoices.setColumnWidth(6, 80)
-        self.tableWidget_Invoices.setColumnWidth(7, 200)
-
-        self.tableWidget_Invoices.setHorizontalHeaderLabels(['ID', 'Месяц', 'К\nоплате', 'Оплачено', 'Дата\nоплаты', 'Остаток',
-                                                              'Занятий\nв месяц', 'Примечания'])
+        column_widths = [100, 80, 80, 100, 100, 80, 200]
+        headers = ['ID', 'Месяц', 'К\nоплате', 'Оплачено', 'Дата\nоплаты', 'Остаток',
+                   'Занятий\nв месяц', 'Примечания']
+        self.setup_table_view(self.tableWidget_Invoices, column_widths, headers)
 
     def setup_tbl_visit_log_view(self):
-        self.tableWidget_VisitLog.setColumnHidden(0, True)  # Скрываем ID
-        self.tableWidget_VisitLog.setColumnWidth(1, 100)
-        self.tableWidget_VisitLog.setColumnWidth(2, 80)
-        self.tableWidget_VisitLog.setColumnWidth(3, 80)
-        self.tableWidget_VisitLog.setColumnWidth(4, 80)
-        self.tableWidget_VisitLog.setColumnWidth(5, 80)
-        self.tableWidget_VisitLog.setColumnWidth(6, 80)
-
-        self.tableWidget_VisitLog.setHorizontalHeaderLabels(['ID', 'Месяц', 'Факт\nзанятий', 'Пропуск\nсправка',
-                                                             'Пропуск\nкарантин', 'Пропуск\nдругое', 'Примечания'])
+        column_widths = [100, 80, 80, 80, 80, 80]
+        headers = ['ID', 'Месяц', 'Факт\nзанятий', 'Пропуск\nсправка',
+                   'Пропуск\nкарантин', 'Пропуск\nдругое', 'Примечания']
+        self.setup_table_view(self.tableWidget_VisitLog, column_widths, headers)
 
     def on_cell_double_clicked(self, row, column):
         if column in [8, ]:  # Проверяем, что это 8 колонка
@@ -275,43 +220,42 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         fill_table_widget(self.contracts_model, self.tableWidget_Contracts, [1, 2, 3, 4, 5, 8])
         self.tableWidget_Contracts.itemChanged.connect(self.on_item_changed)
 
+    def setup_tables_views(self, model, table_widget, filter_condition=None, filter_value=None, columns=None, slot=None):
+        table_widget.itemChanged.disconnect()  # Отключаем сигнал изменения
+        model.select()  # Выполняем выборку
+
+        if filter_condition and filter_value is not None:
+            model.setFilter(f"{filter_condition} = {filter_value}")
+            model.select()  # Выполняем выборку с фильтром
+
+        # Проверка на ошибки после выполнения запроса
+        if model.lastError().isValid():
+            print("Ошибка запроса:", model.lastError().text())
+            return
+
+        fill_table_widget(model, table_widget, columns)
+
+        if slot:  # Если слот указан, подключаем его
+            table_widget.itemChanged.connect(slot)
+
+    def table_contracts_view(self):
+        self.contracts_model = QtSql.QSqlTableModel(self)
+        self.contracts_model.setTable('contracts_view')
+        self.setup_tables_views(self.contracts_model, self.tableWidget_Contracts, columns=[1, 2, 3, 4, 5, 8],
+                              slot=self.on_item_changed)
+
     def table_invoices_view(self, contract_id):
-        self.tableWidget_Invoices.itemChanged.disconnect(self.on_item_changed_invoices)
         self.invoices_model = QtSql.QSqlTableModel(self)
         self.invoices_model.setTable('invoices_view')
-        self.invoices_model.select()
-
-        # Установка фильтра по contract_id
-        self.invoices_model.setFilter(f"contract_id = {contract_id}")
-        self.invoices_model.select()  # Это загрузит данные согласно фильтру
-
-        # Проверка на ошибки после выполнения запроса
-        if self.invoices_model.lastError().isValid():
-            print("Ошибка запроса:", self.invoices_model.lastError().text())
-            return
-
-        fill_table_widget(self.invoices_model, self.tableWidget_Invoices, [2])
-        self.tableWidget_Invoices.itemChanged.connect(self.on_item_changed_invoices)
+        self.setup_tables_views(self.invoices_model, self.tableWidget_Invoices, 'contract_id', contract_id, [2],
+                              slot=self.on_item_changed_invoices)
 
     def table_visit_log_view(self, contract_id):
-        self.tableWidget_VisitLog.itemChanged.disconnect(self.on_item_changed_visit_log)
-        print('table_visit_log_view')
         self.visit_log_model = QtSql.QSqlTableModel(self)
         self.visit_log_model.setTable('visit_log_view')
-        self.visit_log_model.select()
-        print(f"contract_id = {contract_id}")
-        # Установка фильтра по contract_id
-        # self.visit_log_model.setFilter(f"invoice_id = {invoice_id}")
-        self.visit_log_model.setFilter(f"contract_id = {contract_id}")
-        self.visit_log_model.select()  # Это загрузит данные согласно фильтру
-
-        # Проверка на ошибки после выполнения запроса
-        if self.visit_log_model.lastError().isValid():
-            print("Ошибка запроса:", self.visit_log_model.lastError().text())
-            return
-
-        fill_table_widget(self.visit_log_model, self.tableWidget_VisitLog, [1])
-        self.tableWidget_VisitLog.itemChanged.connect(self.on_item_changed_visit_log)
+        print(f'table_visit_log_view for contract_id = {contract_id}')
+        self.setup_tables_views(self.visit_log_model, self.tableWidget_VisitLog, 'contract_id', contract_id, [1],
+                              slot=self.on_item_changed_visit_log)
 
     def filter_data(self):
         """ Фильтрация данных в таблице на основе ввода пользователя. """
@@ -339,15 +283,17 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             logging.error("Ошибка фильтрации: %s", str(e))
             qtw.QMessageBox.critical(self, "Ошибка", str(e))
 
-    def on_contract_selected(self):
-
-        # Получаем выбранные индексы
-        selected_indexes = self.tableWidget_Contracts.selectedIndexes()
+    def get_selected_id(self, table_widget, model, column):
+        """ Получает ID из выбранной строки таблицы. """
+        selected_indexes = table_widget.selectedIndexes()
         if selected_indexes:
-            # Получаем строку из первого выбранного индекса
             row = selected_indexes[0].row()
-            # ID договора находится в 0 столбце
-            self.contract_id = self.contracts_model.data(self.contracts_model.index(row, 0))
+            return model.data(model.index(row, column))
+        return None
+
+    def on_contract_selected(self):
+        self.contract_id = self.get_selected_id(self.tableWidget_Contracts, self.contracts_model, 0)
+        if self.contract_id is not None:
             print(f'on_contract_selected {self.contract_id=}')
             self.load_selected_contract(self.contract_id)
             self.table_invoices_view(self.contract_id)
@@ -356,19 +302,14 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             self.setup_tbl_visit_log_view()
 
     def on_invoice_selected(self):
-        print('on_invoice_selected')
-        selected_indexes = self.tableWidget_Invoices.selectedIndexes()
-        if selected_indexes:
-            # Получаем строку из первого выбранного индекса
-            row = selected_indexes[0].row()
-            # ID инвойса находится в 8 столбце
-            self.invoice_id = self.invoices_model.data(self.invoices_model.index(row, 8))
+        self.invoice_id = self.get_selected_id(self.tableWidget_Invoices, self.invoices_model, 8)
+        if self.invoice_id is not None:
             print(f'on_invoice_selected {self.invoice_id=}')
-            # self.table_visit_log_view(self.invoice_id)
-            # self.setup_tbl_visit_log_view()
+
 
     def load_selected_contract(self, contract_id):
-        # Получаем список ФИО родителей
+        """ Загружает данные выбранного контракта и обновляет соответствующие поля. """
+        # Получаем данные из базы
         parents_fio = get_data_from_db('parents')
         child_fio = get_data_from_db('children')
         lesson_names = get_data_from_db('lessons')
@@ -376,68 +317,64 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         # Инициализация модели для выбранного контракта
         self.selected_contract_model = QtSql.QSqlTableModel(self)
         self.selected_contract_model.setTable('contracts_data')
-
-        # Установка фильтра по contract_id
         self.selected_contract_model.setFilter(f"contract_id = {contract_id}")
-        self.selected_contract_model.select()  # Это загрузит данные согласно фильтру
+        self.selected_contract_model.select()
 
         # Проверка на ошибки после выполнения запроса
         if self.selected_contract_model.lastError().isValid():
-            print("Ошибка запроса:", self.selected_contract_model.lastError().text())
+            logging.debug(f"Ошибка запроса: {self.selected_contract_model.lastError().text()}")
             return
 
         # Обновление данных
         if self.selected_contract_model.rowCount() > 0:
             logging.debug(f'{self.selected_contract_model.rowCount()=}')
-
             self.lineEdit_ContractNumber.setText(get_data(self.selected_contract_model, 1))
-            self.lineEdit_ContractDate.setText(get_data(self.selected_contract_model, 2))  # Получение даты
-            self.lineEdit_ContractDateStart.setText(get_data(self.selected_contract_model, 3))  # Начало договора
-            self.lineEdit_ContractDateEnd.setText(get_data(self.selected_contract_model, 4))  # Конец договора
+            self.lineEdit_ContractDate.setText(get_data(self.selected_contract_model, 2))
+            self.lineEdit_ContractDateStart.setText(get_data(self.selected_contract_model, 3))
+            self.lineEdit_ContractDateEnd.setText(get_data(self.selected_contract_model, 4))
+
             populate_combobox(self.selected_contract_model, self.comboBox_ContractApplicant, parents_fio, 5)
             populate_combobox(self.selected_contract_model, self.comboBox_ContractChild, child_fio, 6)
             populate_combobox(self.selected_contract_model, self.comboBox_ContractLessons, lesson_names, 7)
-            self.lineEdit_ContractRemaks.setText(get_data(self.selected_contract_model, 8))  # Примечания
 
+            self.lineEdit_ContractRemaks.setText(get_data(self.selected_contract_model, 8))
         else:
             print(f"Нет данных для contract_id: {contract_id}.")
         print(f'1 load_selected_contract {contract_id=}')
 
     def save_selected_contract(self):
-
+        """ Сохраняет данные выбранного контракта в базу данных. """
         print(f'save_selected_contract {self.contract_id=}')
 
         # Получение введенных данных
-        contract_number = self.lineEdit_ContractNumber.text() if self.lineEdit_ContractNumber.text() not in [None,
-                                                                                                             ""] else None
-        contract_date = validate_and_convert_date(self.lineEdit_ContractDate.text()) if self.lineEdit_ContractDate.text() not in [None,
-                                                                                                       ""] else None
-        contract_start_date = validate_and_convert_date(self.lineEdit_ContractDateStart.text()) if self.lineEdit_ContractDateStart.text() not in [
-            None, ""] else None
-        contract_end_date = validate_and_convert_date(self.lineEdit_ContractDateEnd.text()) if self.lineEdit_ContractDateEnd.text() not in [None,
-                                                                                                                 ""] else None
-        parents_fio = self.comboBox_ContractApplicant.currentText() if self.comboBox_ContractApplicant.currentText() not in [
-            None, ""] else None
-        child_fio = self.comboBox_ContractChild.currentText() if self.comboBox_ContractChild.currentText() not in [None,
-                                                                                                                   ""] else None
-        lesson_name = self.comboBox_ContractLessons.currentText() if self.comboBox_ContractLessons.currentText() not in [
-            None, ""] else None
-        remarks = self.lineEdit_ContractRemaks.text() if self.lineEdit_ContractRemaks.text() not in [None, ""] else None
+        contract_number = get_input_value(self.lineEdit_ContractNumber)
+        contract_date = validate_and_convert_date(get_input_value(self.lineEdit_ContractDate))
+        contract_start_date = validate_and_convert_date(get_input_value(self.lineEdit_ContractDateStart))
+        contract_end_date = validate_and_convert_date(get_input_value(self.lineEdit_ContractDateEnd))
+
+        parents_fio = get_combobox_value(self.comboBox_ContractApplicant)
+        child_fio = get_combobox_value(self.comboBox_ContractChild)
+        lesson_name = get_combobox_value(self.comboBox_ContractLessons)
+        remarks = get_input_value(self.lineEdit_ContractRemaks)
 
         print(contract_number, contract_date, contract_start_date, contract_end_date, parents_fio, child_fio,
               lesson_name, remarks)
 
+        # Получение ID из базы
         applicant_id = get_data_id_from_db('parents', parents_fio)
         child_id = get_data_id_from_db('children', child_fio)
         lesson_id = get_data_id_from_db('lessons', lesson_name)
         print(applicant_id, child_id, lesson_id)
+
         # Логика для сохранения данных в базу данных
         try:
             query = QtSql.QSqlQuery()
-            query.prepare(f"UPDATE contracts SET contract_number = :c_number, contract_date = :c_date, "
-                          f"contract_start_date = :c_start_date, contract_end_date = :c_end_date, "
-                          f"parent_id = :applicant_id, child_id = :child_id, lesson_id = :lesson_id,"
-                          f"remarks = :remarks WHERE contract_id = :id;")
+            query.prepare("UPDATE contracts SET contract_number = :c_number, contract_date = :c_date, "
+                          "contract_start_date = :c_start_date, contract_end_date = :c_end_date, "
+                          "parent_id = :applicant_id, child_id = :child_id, lesson_id = :lesson_id, "
+                          "remarks = :remarks WHERE contract_id = :id;")
+
+            # Привязка значений
             query.bindValue(":c_number", contract_number)
             query.bindValue(":c_date", contract_date)
             query.bindValue(":c_start_date", contract_start_date)
@@ -448,19 +385,19 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             query.bindValue(":remarks", remarks)
             query.bindValue(":id", self.contract_id)
 
+            # Выполнение запроса и обработка результата
             if not query.exec():
                 logging.error(f"Failed to update record: {query.lastError().text()}")
                 QMessageBox.critical(None, "Ошибка", "Не удалось обновить запись:\n" + query.lastError().text())
                 return False
             else:
                 logging.debug("Record updated successfully.")
-                # Обновляем таблицу
-                self.table_contracts_view()  # Теперь вызываем метод обновления таблицы
+                # Обновляем таблицу и загружаем данные для выбранного контракта
+                self.table_contracts_view()
                 self.load_selected_contract(self.contract_id)
 
         except Exception as e:
             logging.error(f"Ошибка при обновлении базы данных: {e}")
-
 
     def add_new_contract(self):
         print(f'add_new_contract pressed {self.contract_id=}')

@@ -90,6 +90,16 @@ def populate_combobox(model_name, item_name, items_list, col):
     else:
         print(f"Текущее значение '{current_data}' не найдено в списке.")
 
+def get_combobox_value(combo_box):
+    """ Возвращает значение из comboBox или None. """
+    value = combo_box.currentText()
+    return value if value else None
+
+def get_input_value(input_field):
+    """ Возвращает текст из QLineEdit или None. """
+    value = input_field.text()
+    return value if value else None
+
 
 def validate_and_convert_date(input_date: str) -> str:
     # Заменяем любые разделители на точки
