@@ -33,3 +33,4 @@ def fill_table_widget(model, table_widget, non_editable_columns):
                                       ~Qt.ItemFlag.ItemIsUserCheckable)
 
             table_widget.setItem(row, column, item)
+    print('finished filling table')

@@ -1,9 +1,18 @@
-from PyQt6 import QtCore, QtSql
+import logging
 
+from PyQt6 import QtCore, QtSql
 from datetime import datetime
+
+from PyQt6.QtWidgets import QMessageBox
 
 from model.db_connect import DatabaseConnector
 
+
+def setup_table_view(table_widget, column_widths, headers):
+    table_widget.setColumnHidden(0, True)  # Скрываем ID
+    for index, width in enumerate(column_widths):
+        table_widget.setColumnWidth(index + 1, width)  # Учитываем, что ID находится на нулевом индексе
+    table_widget.setHorizontalHeaderLabels(headers)
 
 def get_data_from_db(data_type):
     """
@@ -12,53 +21,64 @@ def get_data_from_db(data_type):
     :param data_type: Тип запрашиваемых данных ('parents', 'children', 'lessons', 'teams')
     :return: Список с данными
     """
-    data = []
-    if data_type == 'parents':
-        query = QtSql.QSqlQuery("SELECT parent_fio FROM parents_view")
-    elif data_type == 'children':
-        query = QtSql.QSqlQuery("SELECT child_fio FROM children_view")
-    elif data_type == 'lessons':
-        query = QtSql.QSqlQuery("SELECT lesson_building FROM lessons_view")
-    elif data_type == 'teams':
-        query = QtSql.QSqlQuery("SELECT team_name FROM teams")
-    else:
+    # Определяем запросы в виде словаря
+    queries = {
+        'parents': "SELECT parent_fio FROM parents_view",
+        'children': "SELECT child_fio FROM children_view",
+        'lessons': "SELECT lesson_building FROM lessons_view",
+        'teams': "SELECT team_name FROM teams",
+        'months': "SELECT month_name FROM months ORDER BY sorting",
+    }
+
+    if data_type not in queries:
         raise ValueError("Неверный тип данных. Используйте 'parents', 'children', 'lessons' или 'teams'.")
 
-    while query.next():
-        data.append(query.value(0))
+    query = QtSql.QSqlQuery(queries[data_type])  # Выполняем запрос
+
+    data = []
+    while query.next():  # Считываем все результаты
+        data.append(query.value(0))  # Добавляем значение в список
+
     return data
+
+
+
+
 
 def get_data_id_from_db(data_type, data):
     """
     Получает данные из базы данных в зависимости от типа запрашиваемых данных.
+
     :param data_type: Тип запрашиваемых данных ('parents', 'children', 'lessons', 'teams')
     :param data: Значение для поиска
     :return: person_id, lesson_id или team_id
     """
-    query = QtSql.QSqlQuery()
+    # Определяем запросы в виде словаря
+    queries = {
+        'parents': "SELECT person_id FROM parents_view WHERE parent_fio = :data",
+        'children': "SELECT person_id FROM children_view WHERE child_fio = :data",
+        'lessons': "SELECT lesson_id FROM lessons_view WHERE lesson_building = :data",
+        'teams': "SELECT team_id FROM teams WHERE team_name = :data",
+        'months': "SELECT month_id FROM months WHERE month_name = :data"
+    }
 
-    if data_type == 'parents':
-        query.prepare("SELECT person_id FROM parents_view WHERE parent_fio = :data")
-    elif data_type == 'children':
-        query.prepare("SELECT person_id FROM children_view WHERE child_fio = :data")
-    elif data_type == 'lessons':
-        query.prepare("SELECT lesson_id FROM lessons_view WHERE lesson_building = :data")
-    elif data_type == 'teams':
-        query.prepare("SELECT team_id FROM teams WHERE team_name = :data")
-    else:
+    if data_type not in queries:
         raise ValueError("Неверный тип данных. Используйте 'parents', 'children', 'lessons' или 'teams'.")
 
-    query.bindValue(":data", data)
+    query = QtSql.QSqlQuery()
+    query.prepare(queries[data_type])  # Подготовка запроса
+    query.bindValue(":data", data)  # Привязка значения
 
     if query.exec():
-        if query.next():
-            return query.value(0)
+        if query.next():  # Если есть хотя бы одна строка с результатом
+            return query.value(0)  # Возвращаем значение
         else:
-            print("No data found.")
+            logging.warning("No data found for the provided value: %s", data)
             return None
     else:
-        print("Query execution failed:", query.lastError().text())
+        logging.error("Query execution failed: %s", query.lastError().text())
         return None
+
 
 def get_data(selected_name, col):
     """
@@ -100,8 +120,131 @@ def get_input_value(input_field):
     value = input_field.text()
     return value if value else None
 
+def get_value_id(table_model, tbl_name, row, value_id_index):
+    """ Получить идентификатор записи в зависимости от типа таблицы. """
+    if tbl_name in ['contracts', 'visit_log', 'invoices', 'payments']:
+        return table_model.data(table_model.index(row, value_id_index))
+    return None
+
+def get_selected_id(table_widget, model, column):
+    """ Получает ID из выбранной строки таблицы. """
+    selected_indexes = table_widget.selectedIndexes()
+    if selected_indexes:
+        row = selected_indexes[0].row()
+        return model.data(model.index(row, column))
+    return None
+
+def check_and_convert_to_int(value):
+    """
+    Проверяет, является ли переменная целым числом или может быть преобразована в целое число.
+    Если не может быть преобразована, возвращает 0.
+
+    :param value: Значение для проверки и преобразования.
+    :return: Целое число.
+    """
+    try:
+        # Пробуем преобразовать значение в целое число
+        return int(value)
+    except (ValueError, TypeError):
+        # Если возникает ошибка, возвращаем 0
+        return 0
+
+def get_lesson_fact_visit(invoice_id):
+    query = QtSql.QSqlQuery()
+    query.prepare("SELECT lessons_fact FROM visit_log_view WHERE invoice_id = :invoice_id")
+    query.bindValue(":invoice_id", invoice_id)
+
+    if not query.exec():
+        logging.error(f"Failed to execute query to find lesson_fact_visit: {query.lastError().text()}")
+        QMessageBox.critical(None, "Ошибка",
+                             "Не удалось получить данные о фактическом посещении:\n" + query.lastError().text())
+        return None
+
+    if query.next():
+        return check_and_convert_to_int(query.value(0))  # Получаем значение
+
+    logging.warning(f'No lesson_fact_visit found for invoice_id: {invoice_id}')
+    return 0  # Если запись не найдена, возвращаем 0
+
+
+def delete_related_records(invoice_id):
+    queries = {
+        "visit_log": "DELETE FROM visit_log WHERE invoice_id = :invoice_id",
+        "payments": "DELETE FROM payments WHERE invoice_id = :invoice_id",
+        "invoices": "DELETE FROM invoices WHERE invoice_id = :invoice_id"
+    }
+
+    for record_type, query in queries.items():
+        delete_query = QtSql.QSqlQuery()
+        delete_query.prepare(query)
+        delete_query.bindValue(":invoice_id", invoice_id)
+
+        if not delete_query.exec():
+            logging.error(f"Failed to delete {record_type} record: {delete_query.lastError().text()}")
+            QMessageBox.critical(None, "Ошибка",
+                                 f"Не удалось удалить записи из {record_type}:\n" + delete_query.lastError().text())
+            return False
+
+    return True
+
+def insert_invoice(contract_id, month_id, lessons_per_month, remarks):
+    """Вставляет новую квитанцию в таблицу invoices и добавляет её в журнал посещений."""
+    insert_query = QtSql.QSqlQuery()
+    insert_query.prepare("""INSERT INTO invoices (contract_id, month_id, lessons_per_month, remarks) 
+                             VALUES (:contract_id, :month_id, :lessons_per_month, :remarks)""")
+    insert_query.bindValue(":contract_id", contract_id)
+    insert_query.bindValue(":month_id", month_id)
+    insert_query.bindValue(":lessons_per_month", lessons_per_month)
+    insert_query.bindValue(":remarks", remarks)
+
+    if not insert_query.exec():
+        handle_query_error(insert_query, "Не удалось добавить новую запись в invoices")
+        return False
+
+    logging.debug("Record inserted successfully in invoices.")
+
+    invoice_id = insert_query.lastInsertId()  # Получаем id последней вставленной записи
+    return insert_visit_log(invoice_id)
+
+def insert_visit_log(invoice_id):
+    """Добавляет новую запись в visit_log с заданным invoice_id."""
+    insert_log_query = QtSql.QSqlQuery()
+    insert_log_query.prepare("INSERT INTO visit_log (invoice_id) VALUES (:invoice_id)")
+    insert_log_query.bindValue(":invoice_id", invoice_id)
+
+    if not insert_log_query.exec():
+        handle_query_error(insert_log_query, "Не удалось добавить новую запись в журнал посещений")
+        return False
+
+    logging.debug("Record inserted successfully in visit_log.")
+    return True
+
+def handle_query_error(self, query, message):
+    """Обрабатывает ошибку выполнения запроса и показывает сообщение пользователю."""
+    logging.error(f"{message}: {query.lastError().text()}")
+    QMessageBox.critical(None, "Ошибка", f"{message}:\n{query.lastError().text()}")
+
+def execute_query(query):
+    """ Выполняет SQL-запрос и обрабатывает ошибки. """
+    try:
+        if not query.exec():
+            error_message = f"Не удалось обновить запись:\n{query.lastError().text()}"
+            logging.error(error_message)
+            QMessageBox.critical(None, "Ошибка", error_message)
+            return False
+
+        logging.debug("Запись успешно обновлена.")
+        return True
+
+    except Exception as e:
+        logging.error(f"Ошибка при выполнении запроса: {e}")
+        return False
 
 def validate_and_convert_date(input_date: str) -> str:
+    # Проверяем, пустая ли строка или не содержит цифр
+    if not input_date or not any(char.isdigit() for char in input_date):
+        return None
+
     # Заменяем любые разделители на точки
     input_date = input_date.replace('/', '.').replace('-', '.').replace(' ', '.').replace(',', '.').replace('#',
                                                                                                             '.').replace(
@@ -155,17 +298,18 @@ def validate_and_convert_date(input_date: str) -> str:
 
 
 if __name__ == '__main__':
-    db_connector = DatabaseConnector()
-    if not db_connector.connect():
-        print('No database connected.')
-    else:
-        print('Database connected.')
-        applicant_id = get_data_id_from_db('parents', 'Ванаг Екатерина Олеговна')
-        print(applicant_id)
+    # db_connector = DatabaseConnector()
+    # if not db_connector.connect():
+    #     print('No database connected.')
+    # else:
+    #     print('Database connected.')
+    #     applicant_id = get_data_id_from_db('parents', 'Ванаг Екатерина Олеговна')
+    #     print(applicant_id)
     # app = QtCore.QCoreApplication([])
     # print("Available Drivers 1:", QtSql.QSqlDatabase.drivers())
     #
     # db_driver = QtSql.QSqlDatabase.drivers()
     # print("Available Drivers 2:", QtSql.QSqlDatabase.drivers())
+    print(validate_and_convert_date(None))
 
 

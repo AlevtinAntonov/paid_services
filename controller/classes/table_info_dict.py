@@ -1,4 +1,5 @@
 # Словарь для определения колонок и идентификаторов в зависимости от таблицы
+
 table_info = {
     'contracts': {
         'column_id': 'contract_id',
@@ -37,8 +38,8 @@ table_info = {
         }
     },
     'payments': {
-        'column_id': 'payment_id',
-        'value_id_index': 9,
+        'column_id': 'invoice_id',
+        'value_id_index': 8,
         'invoice_id_index': 8,
         'column_map': {
             3: "sum_paid",

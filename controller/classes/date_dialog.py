@@ -9,7 +9,7 @@ class DateDialog(qtw.QDialog, Ui_DateInputDialog):
         self.setupUi(self)
         self.lineEdit_InputDate.setText(current_value)
 
-        self.show()
+        # self.show()
 
     def get_value(self):
         return self.lineEdit_InputDate.text()
