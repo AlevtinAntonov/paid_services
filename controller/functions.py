@@ -55,11 +55,11 @@ def get_data_id_from_db(data_type, data):
     """
     # Определяем запросы в виде словаря
     queries = {
-        'parents': "SELECT person_id FROM parents_view WHERE parent_fio = :data",
-        'children': "SELECT person_id FROM children_view WHERE child_fio = :data",
-        'lessons': "SELECT lesson_id FROM lessons_view WHERE lesson_building = :data",
-        'teams': "SELECT team_id FROM teams WHERE team_name = :data",
-        'months': "SELECT month_id FROM months WHERE month_name = :data"
+        'parents': "SELECT person_id FROM parents_view WHERE parent_fio = :datas",
+        'children': "SELECT person_id FROM children_view WHERE child_fio = :datas",
+        'lessons': "SELECT lesson_id FROM lessons_view WHERE lesson_building = :datas",
+        'teams': "SELECT team_id FROM teams WHERE team_name = :datas",
+        'months': "SELECT month_id FROM months WHERE month_name = :datas"
     }
 
     if data_type not in queries:
@@ -67,13 +67,13 @@ def get_data_id_from_db(data_type, data):
 
     query = QtSql.QSqlQuery()
     query.prepare(queries[data_type])  # Подготовка запроса
-    query.bindValue(":data", data)  # Привязка значения
+    query.bindValue(":datas", data)  # Привязка значения
 
     if query.exec():
         if query.next():  # Если есть хотя бы одна строка с результатом
             return query.value(0)  # Возвращаем значение
         else:
-            logging.warning("No data found for the provided value: %s", data)
+            logging.warning("No datas found for the provided value: %s", data)
             return None
     else:
         logging.error("Query execution failed: %s", query.lastError().text())
@@ -295,6 +295,25 @@ def validate_and_convert_date(input_date: str) -> str:
             return f"Ошибка: {str(e)}"
 
     return "Неверный формат даты"
+
+
+def get_next_contract_number():
+    """ Получает следующий номер контракта, основываясь на максимальном значении contract_number. """
+    query = QtSql.QSqlQuery()
+
+    # Запрос на получение максимального значения
+    query.prepare("SELECT MAX(contract_number) FROM contracts")
+
+    if not query.exec():
+        logging.debug(f"Ошибка выполнения запроса: {query.lastError().text()}")
+        return None  # Возвращаем None в случае ошибки
+
+    if query.next():  # Переходим к первой строке результата
+        max_value = query.value(0)  # Получаем значение из первого столбца
+        if max_value is not None:  # Проверяем, что максимальное значение не None
+            return max_value + 1  # Возвращаем следующий номер (максимальное значение + 1)
+
+    return 1  # Если нет записей, возвращаем 1 как первый номер контракта
 
 
 if __name__ == '__main__':

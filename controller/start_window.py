@@ -2,11 +2,13 @@ import logging
 
 from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QMessageBox
 
 from controller.classes.delete_invoice_dialog import DeleteInvoiceDialog
 from controller.classes.invoice_dialog import InvoiceDialog
-from controller.classes.table_info_dict import table_info
+from controller.classes.new_contract_dialog import ContractDialog
+from controller.datas.table_info_dict import table_info
 from controller.classes.date_dialog import DateDialog
 from controller.fill_tables import fill_table_widget
 from controller.functions import validate_and_convert_date, get_data, get_data_from_db, populate_combobox, \
@@ -293,7 +295,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.selected_contract_model.lastError().isValid():
             logging.debug(f"Ошибка запроса: {self.selected_contract_model.lastError().text()}")
             return
-
+        self.lineEdit_ContractNumber.setValidator(QIntValidator(0, 999999, self))
         # Обновление данных
         if self.selected_contract_model.rowCount() > 0:
             logging.debug(f'{self.selected_contract_model.rowCount()=}')
@@ -305,6 +307,9 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
             populate_combobox(self.selected_contract_model, self.comboBox_ContractApplicant, parents_fio, 5)
             populate_combobox(self.selected_contract_model, self.comboBox_ContractChild, child_fio, 6)
             populate_combobox(self.selected_contract_model, self.comboBox_ContractLessons, lesson_names, 7)
+            self.comboBox_ContractApplicant.setEditable(True)
+            self.comboBox_ContractChild.setEditable(True)
+            self.comboBox_ContractLessons.setEditable(True)
 
             self.lineEdit_ContractRemaks.setText(get_data(self.selected_contract_model, 8))
         else:
@@ -377,6 +382,7 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def delete_invoice(self):
         if not self.invoice_id:
+            QMessageBox.warning(None, "Предупреждение", "Не выбрана квитанция!")
             print("Не выбрана квитанция!")
             return
 
@@ -421,7 +427,13 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.table_visit_log_view(self.contract_id)
 
     def add_new_contract(self):
-        print(f'add_new_contract pressed {self.contract_id=}')
+        # Создаем экземпляр диалогового окна для добавления нового контракта
+        contract_dialog = ContractDialog()
+
+        # Показываем диалоговое окно и ждем его закрытия
+        if contract_dialog.exec():
+            new_contract_data = contract_dialog.get_contract_data()
+            print(new_contract_data)
 
     def print_selected_contract(self):
         print(f'print_selected_contract pressed {self.contract_id=}')
