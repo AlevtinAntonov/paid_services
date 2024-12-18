@@ -1,11 +1,14 @@
+import logging
 from datetime import datetime
 
-from PyQt6 import QtWidgets as qtw
+from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator
+from PyQt6.QtWidgets import QMessageBox
 
 from controller.datas.variables import CONTRACT_END_DATE
-from controller.functions import get_data_from_db, get_next_contract_number, validate_and_convert_date
+from controller.functions import get_data_from_db, get_next_contract_number, validate_and_convert_date, execute_query, \
+    get_data_id_from_db
 from view.new_contract_dialog import Ui_DialogAddNewContract
 
 
@@ -70,16 +73,57 @@ class ContractDialog(qtw.QDialog, Ui_DialogAddNewContract):
         self.comboBox_ContractChildDialog.setEditable(True)
         self.comboBox_ContractLessonsDialog.setEditable(True)
 
+    def accept(self):
+        """ Переопределяем метод accept для проверки обязательных полей. """
+        contract_data = self.get_contract_data()
+
+        # Проверка обязательных полей
+        if not contract_data['applicant_id'] or not contract_data['child_id'] or not contract_data['lesson_id']:
+            QMessageBox.warning(self, "Предупреждение", "Пожалуйста, заполните все обязательные поля.")
+            return  # Не закрываем диалог, если обязательные поля не заполнены
+
+        # Если все проверки пройдены, продолжаем с обычным поведением
+        super().accept()
 
     def get_contract_data(self):
         # данные из полей ввода
+        applicant_id = get_data_id_from_db('parents', self.comboBox_ContractApplicantDialog.currentText())
+        child_id = get_data_id_from_db('children', self.comboBox_ContractChildDialog.currentText())
+        lesson_id = get_data_id_from_db('lessons', self.comboBox_ContractLessonsDialog.currentText())
         return {
-            'contract_number': self.lineEdit_ContractNumberDialog.text(),
+            'contract_number': int(self.lineEdit_ContractNumberDialog.text()),
             'contract_date': validate_and_convert_date(self.lineEdit_ContractDateDialog.text()),
             'contract_start_date': validate_and_convert_date(self.lineEdit_ContractDateStartDialog.text()),
             'contract_end_date': validate_and_convert_date(self.lineEdit_ContractDateEndDialog.text()),
-            'contract_applicant': self.comboBox_ContractApplicantDialog.currentText(),
-            'contract_child': self.comboBox_ContractChildDialog.currentText(),
-            'contract_lesson': self.comboBox_ContractLessonsDialog.currentText(),
+            'applicant_id': applicant_id,
+            'child_id': child_id,
+            'lesson_id': lesson_id,
             'contract_remarks':self.lineEdit_ContractRemaksDialog.text()
         }
+
+    def save_new_contract(self):
+        """ Обновляет запись контракта в базе данных. """
+        contract_data = self.get_contract_data()
+        query = QtSql.QSqlQuery()
+        query.prepare("""
+            INSERT INTO contracts(contract_number, contract_date, contract_start_date, contract_end_date, parent_id, 
+            child_id, lesson_id, remarks)
+            VALUES (:c_number, :c_date, :c_start_date, :c_end_date, :applicant_id, :child_id, :lesson_id, :remarks);
+        """)
+        # Привязка значений
+        query.bindValue(":c_number", contract_data['contract_number'])
+        query.bindValue(":c_date", contract_data['contract_date'])
+        query.bindValue(":c_start_date", contract_data['contract_start_date'])
+        query.bindValue(":c_end_date", contract_data['contract_end_date'])
+        query.bindValue(":applicant_id", contract_data['applicant_id'])
+        query.bindValue(":child_id", contract_data['child_id'])
+        query.bindValue(":lesson_id", contract_data['lesson_id'])
+        query.bindValue(":remarks", contract_data['contract_remarks'])
+
+        # Выполнение запроса и обработка результата
+        if not query.exec():
+            logging.error(f"Failed to insert record: {query.lastError().text()}")
+            QMessageBox.critical(None, "Ошибка", "Не удалось вставить запись:\n" + query.lastError().text())
+            return False
+
+        logging.debug("Record insert successfully.")

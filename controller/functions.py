@@ -226,6 +226,7 @@ def handle_query_error(self, query, message):
 
 def execute_query(query):
     """ Выполняет SQL-запрос и обрабатывает ошибки. """
+    print(f'execute query: {query}')
     try:
         if not query.exec():
             error_message = f"Не удалось обновить запись:\n{query.lastError().text()}"
