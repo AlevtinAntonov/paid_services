@@ -37,19 +37,19 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4"/>
       </widget>
+      <widget class="QWidget" name="tab_VisitLog">
+       <attribute name="title">
+        <string>Журнал посещений</string>
+       </attribute>
+      </widget>
       <widget class="QWidget" name="tab_Lessons">
        <attribute name="title">
-        <string>Кружки</string>
+        <string>Список кружков</string>
        </attribute>
       </widget>
       <widget class="QWidget" name="tab_Children">
        <attribute name="title">
-        <string>Дети</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_Family">
-       <attribute name="title">
-        <string>Семьи</string>
+        <string>Воспитаники</string>
        </attribute>
       </widget>
       <widget class="QWidget" name="tab_Parents">
@@ -57,12 +57,12 @@
         <string>Родители</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tab_Teams">
+      <widget class="QWidget" name="tab_TeamLesson">
        <attribute name="title">
-        <string>Группы</string>
+        <string>Группы по кружкам</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tab_Dictionary">
+      <widget class="QWidget" name="tab_Dicts">
        <attribute name="title">
         <string>Справочники</string>
        </attribute>
@@ -86,12 +86,14 @@
     </property>
     <addaction name="action_NewContract"/>
     <addaction name="action"/>
+    <addaction name="action_7"/>
     <addaction name="action_4"/>
     <addaction name="action_5"/>
     <addaction name="action_6"/>
-    <addaction name="action_7"/>
     <addaction name="action_8"/>
     <addaction name="action_9"/>
+    <addaction name="separator"/>
+    <addaction name="action_Close"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -154,7 +156,7 @@
   </action>
   <action name="action_4">
    <property name="text">
-    <string>Кружки</string>
+    <string>Список кружков</string>
    </property>
   </action>
   <action name="action_5">
@@ -169,17 +171,22 @@
   </action>
   <action name="action_7">
    <property name="text">
-    <string>Семьи</string>
+    <string>Журнал посещений</string>
    </property>
   </action>
   <action name="action_8">
    <property name="text">
-    <string>Группы</string>
+    <string>Группы по кружкам</string>
    </property>
   </action>
   <action name="action_9">
    <property name="text">
     <string>Справочники</string>
+   </property>
+  </action>
+  <action name="action_Close">
+   <property name="text">
+    <string>Выход</string>
    </property>
   </action>
  </widget>

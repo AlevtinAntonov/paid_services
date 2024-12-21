@@ -13,7 +13,6 @@ def setup_tables_views(model, table_widget, filter_condition=None, filter_value=
     if model.lastError().isValid():
         print("Ошибка запроса:", model.lastError().text())
         return
-
     fill_table_widget(model, table_widget, columns)
 
     if slot:  # Если слот указан, подключаем его

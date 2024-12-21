@@ -1,4 +1,5 @@
 import logging
+import re
 
 from PyQt6 import QtCore, QtSql
 from datetime import datetime
@@ -7,12 +8,17 @@ from PyQt6.QtWidgets import QMessageBox
 
 from model.db_connect import DatabaseConnector
 
+def show_error(message):
+    QMessageBox.critical(None, "Ошибка", message)
+    return
+
 
 def setup_table_view(table_widget, column_widths, headers):
     table_widget.setColumnHidden(0, True)  # Скрываем ID
     for index, width in enumerate(column_widths):
         table_widget.setColumnWidth(index + 1, width)  # Учитываем, что ID находится на нулевом индексе
     table_widget.setHorizontalHeaderLabels(headers)
+
 
 def get_data_from_db(data_type):
     """
@@ -28,6 +34,8 @@ def get_data_from_db(data_type):
         'lessons': "SELECT lesson_building FROM lessons_view",
         'teams': "SELECT team_name FROM teams",
         'months': "SELECT month_name FROM months ORDER BY sorting",
+        'teachers': "SELECT (last_name || ' ' || first_name || ' ' || patronymic) AS teacher_fio "
+                    "FROM teachers ORDER BY teacher_fio",
     }
 
     if data_type not in queries:
@@ -40,9 +48,6 @@ def get_data_from_db(data_type):
         data.append(query.value(0))  # Добавляем значение в список
 
     return data
-
-
-
 
 
 def get_data_id_from_db(data_type, data):
@@ -59,7 +64,10 @@ def get_data_id_from_db(data_type, data):
         'children': "SELECT person_id FROM children_view WHERE child_fio = :datas",
         'lessons': "SELECT lesson_id FROM lessons_view WHERE lesson_building = :datas",
         'teams': "SELECT team_id FROM teams WHERE team_name = :datas",
-        'months': "SELECT month_id FROM months WHERE month_name = :datas"
+        'months': "SELECT month_id FROM months WHERE month_name = :datas",
+        'buildings': "SELECT building_id FROM buildings WHERE building_number = :datas",
+        'genders': "SELECT gender_id FROM genders WHERE gender_name = :datas",
+        'teachers': "SELECT teacher_id FROM teachers WHERE (last_name || ' ' || first_name || ' ' || patronymic) = :datas ",
     }
 
     if data_type not in queries:
@@ -110,21 +118,25 @@ def populate_combobox(model_name, item_name, items_list, col):
     else:
         print(f"Текущее значение '{current_data}' не найдено в списке.")
 
+
 def get_combobox_value(combo_box):
     """ Возвращает значение из comboBox или None. """
     value = combo_box.currentText()
     return value if value else None
+
 
 def get_input_value(input_field):
     """ Возвращает текст из QLineEdit или None. """
     value = input_field.text()
     return value if value else None
 
+
 def get_value_id(table_model, tbl_name, row, value_id_index):
     """ Получить идентификатор записи в зависимости от типа таблицы. """
     if tbl_name in ['contracts', 'visit_log', 'invoices', 'payments']:
         return table_model.data(table_model.index(row, value_id_index))
     return None
+
 
 def get_selected_id(table_widget, model, column):
     """ Получает ID из выбранной строки таблицы. """
@@ -133,6 +145,7 @@ def get_selected_id(table_widget, model, column):
         row = selected_indexes[0].row()
         return model.data(model.index(row, column))
     return None
+
 
 def check_and_convert_to_int(value):
     """
@@ -148,6 +161,7 @@ def check_and_convert_to_int(value):
     except (ValueError, TypeError):
         # Если возникает ошибка, возвращаем 0
         return 0
+
 
 def get_lesson_fact_visit(invoice_id):
     query = QtSql.QSqlQuery()
@@ -187,6 +201,7 @@ def delete_related_records(invoice_id):
 
     return True
 
+
 def insert_invoice(contract_id, month_id, lessons_per_month, remarks):
     """Вставляет новую квитанцию в таблицу invoices и добавляет её в журнал посещений."""
     insert_query = QtSql.QSqlQuery()
@@ -206,6 +221,7 @@ def insert_invoice(contract_id, month_id, lessons_per_month, remarks):
     invoice_id = insert_query.lastInsertId()  # Получаем id последней вставленной записи
     return insert_visit_log(invoice_id)
 
+
 def insert_visit_log(invoice_id):
     """Добавляет новую запись в visit_log с заданным invoice_id."""
     insert_log_query = QtSql.QSqlQuery()
@@ -219,10 +235,12 @@ def insert_visit_log(invoice_id):
     logging.debug("Record inserted successfully in visit_log.")
     return True
 
+
 def handle_query_error(self, query, message):
     """Обрабатывает ошибку выполнения запроса и показывает сообщение пользователю."""
     logging.error(f"{message}: {query.lastError().text()}")
     QMessageBox.critical(None, "Ошибка", f"{message}:\n{query.lastError().text()}")
+
 
 def execute_query(query):
     """ Выполняет SQL-запрос и обрабатывает ошибки. """
@@ -240,6 +258,7 @@ def execute_query(query):
     except Exception as e:
         logging.error(f"Ошибка при выполнении запроса: {e}")
         return False
+
 
 def validate_and_convert_date(input_date: str) -> str:
     # Проверяем, пустая ли строка или не содержит цифр
@@ -317,6 +336,15 @@ def get_next_contract_number():
     return 1  # Если нет записей, возвращаем 1 как первый номер контракта
 
 
+def is_valid_email(email):
+    # Регулярное выражение для проверки корректности адреса электронной почты
+    regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(regex, email) is not None
+
+
+
+
+
 if __name__ == '__main__':
     # db_connector = DatabaseConnector()
     # if not db_connector.connect():
@@ -331,5 +359,3 @@ if __name__ == '__main__':
     # db_driver = QtSql.QSqlDatabase.drivers()
     # print("Available Drivers 2:", QtSql.QSqlDatabase.drivers())
     print(validate_and_convert_date(None))
-
-

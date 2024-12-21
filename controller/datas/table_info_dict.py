@@ -45,5 +45,35 @@ table_info = {
             3: "sum_paid",
             4: "payment_date",
         }
+    },
+    'lessons': {
+        'column_id': 'lesson_id',
+        'value_id_index': 0,
+        'column_map': {
+            2: "lesson_name",
+            3: "building_id",
+            4: "lesson_rate",
+            5: "lessons_per_year",
+        }
+    },
+    'teachers': {
+        'column_id': 'teacher_id',
+        'value_id_index': 0,
+        'column_map': {
+            1: "last_name",
+            2: "first_name",
+            3: "patronymic",
+            4: "gender_id",
+            5: "phone",
+            6: "email",
+        }
+    },
+    'teachers_lessons': {
+        'column_id': 'teacher_id',
+        'value_id_index': 0,
+        'column_map': {
+            0: "lesson_id",
+            1: "teacher_id",
+        }
     }
 }
