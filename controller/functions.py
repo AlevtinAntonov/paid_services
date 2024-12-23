@@ -1,6 +1,7 @@
 import logging
 import re
 
+from PyQt6 import QtWidgets as qtw
 from PyQt6 import QtCore, QtSql
 from datetime import datetime
 
@@ -31,11 +32,13 @@ def get_data_from_db(data_type):
     queries = {
         'parents': "SELECT parent_fio FROM parents_view",
         'children': "SELECT child_fio FROM children_view",
-        'lessons': "SELECT lesson_building FROM lessons_view",
+        'lessons': "SELECT lesson_building FROM WHERE is_visible = TRUE",
         'teams': "SELECT team_name FROM teams",
+        'genders': "SELECT gender_name FROM genders",
         'months': "SELECT month_name FROM months ORDER BY sorting",
+        'buildings': "SELECT building_number FROM buildings ORDER BY building_number",
         'teachers': "SELECT (last_name || ' ' || first_name || ' ' || patronymic) AS teacher_fio "
-                    "FROM teachers ORDER BY teacher_fio",
+                    "FROM teachers WHERE is_visible = TRUE ORDER BY teacher_fio",
     }
 
     if data_type not in queries:
@@ -213,7 +216,7 @@ def insert_invoice(contract_id, month_id, lessons_per_month, remarks):
     insert_query.bindValue(":remarks", remarks)
 
     if not insert_query.exec():
-        handle_query_error(insert_query, "Не удалось добавить новую запись в invoices")
+        handle_query_error(None, insert_query, "Не удалось добавить новую запись в invoices")
         return False
 
     logging.debug("Record inserted successfully in invoices.")
@@ -221,6 +224,39 @@ def insert_invoice(contract_id, month_id, lessons_per_month, remarks):
     invoice_id = insert_query.lastInsertId()  # Получаем id последней вставленной записи
     return insert_visit_log(invoice_id)
 
+def insert_new_lesson(lesson_name, building_id, lesson_rate, lessons_per_year):
+    insert_query = QtSql.QSqlQuery()
+    insert_query.prepare("""INSERT INTO lessons(lesson_name, building_id, lesson_rate, lessons_per_year) 
+                             VALUES (:lesson_name, :building_id, :lesson_rate, :lessons_per_year)""")
+    insert_query.bindValue(":lesson_name", lesson_name)
+    insert_query.bindValue(":building_id", building_id)
+    insert_query.bindValue(":lesson_rate", lesson_rate)
+    insert_query.bindValue(":lessons_per_year", lessons_per_year)
+
+    if not insert_query.exec():
+        handle_query_error(None, insert_query, "Не удалось добавить новую запись в lessons")
+        return False
+
+    logging.debug("Record inserted successfully in lessons.")
+    return True
+
+def insert_new_teacher(last_name, first_name, patronymic, gender_id, phone, email):
+    insert_query = QtSql.QSqlQuery()
+    insert_query.prepare("""INSERT INTO teachers (last_name, first_name, patronymic, gender_id, phone, email)
+                             VALUES (:last_name, :first_name, :patronymic, :gender_id, :phone, :email)""")
+    insert_query.bindValue(":last_name", last_name)
+    insert_query.bindValue(":first_name", first_name)
+    insert_query.bindValue(":patronymic", patronymic)
+    insert_query.bindValue(":gender_id", gender_id)
+    insert_query.bindValue(":phone", phone)
+    insert_query.bindValue(":email", email)
+
+    if not insert_query.exec():
+        handle_query_error(None, insert_query, "Не удалось добавить новую запись в teachers")
+        return False
+
+    logging.debug("Record inserted successfully in teachers.")
+    return True
 
 def insert_visit_log(invoice_id):
     """Добавляет новую запись в visit_log с заданным invoice_id."""
@@ -229,11 +265,25 @@ def insert_visit_log(invoice_id):
     insert_log_query.bindValue(":invoice_id", invoice_id)
 
     if not insert_log_query.exec():
-        handle_query_error(insert_log_query, "Не удалось добавить новую запись в журнал посещений")
+        handle_query_error(None, insert_log_query, "Не удалось добавить новую запись в журнал посещений")
         return False
 
     logging.debug("Record inserted successfully in visit_log.")
     return True
+
+def insert_new_record(dialog_class, insert_function, success_callback):
+    dialog = dialog_class()
+    logging.debug(f"{dialog_class.__name__} dialog opened")
+
+    if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
+        logging.debug(f"{dialog_class.__name__} dialog accepted")
+        try:
+            data = dialog.get_data()
+            insert_function(*data)  # Распаковываем данные для передачи в функцию вставки
+            success_callback()  # Вызываем функцию для обновления таблицы
+        except Exception as e:
+            logging.error(f"Error while saving record: {str(e)}")
+            show_error(f"Не удалось сохранить запись: {str(e)}")
 
 
 def handle_query_error(self, query, message):
@@ -244,7 +294,6 @@ def handle_query_error(self, query, message):
 
 def execute_query(query):
     """ Выполняет SQL-запрос и обрабатывает ошибки. """
-    print(f'execute query: {query}')
     try:
         if not query.exec():
             error_message = f"Не удалось обновить запись:\n{query.lastError().text()}"
@@ -341,7 +390,15 @@ def is_valid_email(email):
     regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(regex, email) is not None
 
-
+def update_visibility(lesson_id, teacher_id):
+    query = QtSql.QSqlQuery()
+    update_visibility_query = """UPDATE teachers_lessons 
+                                SET is_visible = FALSE 
+                                WHERE lesson_id = :lesson_id AND teacher_id = :teacher_id;"""
+    query.prepare(update_visibility_query)
+    query.bindValue(":lesson_id", lesson_id)
+    query.bindValue(":teacher_id", teacher_id)
+    return execute_query(query)
 
 
 

@@ -48,4 +48,4 @@ class Ui_TeacherChoice(object):
     def retranslateUi(self, TeacherChoice):
         _translate = QtCore.QCoreApplication.translate
         TeacherChoice.setWindowTitle(_translate("TeacherChoice", "Выбор преподавателя"))
-        self.label.setText(_translate("TeacherChoice", "Выберите ФИО преподавателя"))
+        self.label.setText(_translate("TeacherChoice", "Выберите ФИО педагога или :  -"))

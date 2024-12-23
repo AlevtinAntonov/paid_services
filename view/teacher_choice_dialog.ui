@@ -31,7 +31,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Выберите ФИО преподавателя</string>
+        <string>Выберите ФИО педагога или :  -</string>
        </property>
       </widget>
      </item>
