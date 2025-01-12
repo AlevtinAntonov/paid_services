@@ -4,8 +4,9 @@ from PyQt6 import QtWidgets as qtw
 from PyQt6.QtWidgets import QMessageBox
 
 from controller.classes.form_frame_no_1 import Form_Frame_1
+from controller.classes.form_tab_children import FormTabChildren
 from controller.classes.form_tab_contracts import FormTabContracts
-from controller.classes.form_tab_lessons import FormTablesLessons
+from controller.classes.form_tab_lessons import FormTabLessons
 from controller.classes.new_contract_dialog import ContractDialog
 from model.db_connect import DatabaseConnector
 from view.main_window import Ui_MainWindow
@@ -47,8 +48,8 @@ class StartWindow(qtw.QMainWindow, Ui_MainWindow):
         tab_map = {
             1: ("tab_Payment", Form_Frame_1, "form_tab_payment"),
             2: ("tab_VisitLog", Form_Frame_1, "form_tab_visit_log"),
-            3: ("tab_Lessons", FormTablesLessons, "form_tab_lessons"),
-            4: ("tab_Children", Form_Frame_1, "form_tab_children"),
+            3: ("tab_Lessons", FormTabLessons, "form_tab_lessons"),
+            4: ("tab_Children", FormTabChildren, "form_tab_children"),
             5: ("tab_Parents", Form_Frame_1, "form_tab_parents"),
             6: ("tab_TeamLesson", Form_Frame_1, "form_tab_team_lesson"),
             7: ("tab_Dicts", Form_Frame_1, "form_tab_dicts"),

@@ -1,7 +1,8 @@
 from PyQt6 import QtWidgets as qtw
 from PyQt6.QtGui import QIntValidator
 
-from controller.functions import get_data_id_from_db, get_data_from_db, show_error, is_valid_email
+from controller.functions import get_data_id_from_db, get_data_from_db, show_error, is_valid_email, \
+    save_cancel_translate
 from view.add_new_teacher_dialog import Ui_AddNewTeacher
 
 
@@ -11,6 +12,13 @@ class AddNewTeacherDialog(qtw.QDialog, Ui_AddNewTeacher):
         self.setupUi(self)
         self.load_data()
 
+        # # Изменяем текст кнопок на русский
+        # save_button = self.button_box.button(qtw.QDialogButtonBox.StandardButton.Save)
+        # cancel_button = self.button_box.button(qtw.QDialogButtonBox.StandardButton.Cancel)
+        #
+        # save_button.setText("Сохранить")
+        # cancel_button.setText("Отмена")
+        save_cancel_translate(self)
 
     def load_data(self):
         gender_name = get_data_from_db('genders')

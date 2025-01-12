@@ -16,7 +16,7 @@ from controller.setup_tbl_views import setup_tables_views
 from view.form_tab_lessons import Ui_Form_TabLessons
 
 
-class FormTablesLessons(qtw.QWidget, Ui_Form_TabLessons):
+class FormTabLessons(qtw.QWidget, Ui_Form_TabLessons):
     def __init__(self):
         super().__init__()
         self.setupUi(self)

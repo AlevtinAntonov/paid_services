@@ -13,6 +13,13 @@ def show_error(message):
     QMessageBox.critical(None, "Ошибка", message)
     return
 
+def save_cancel_translate(self):
+    # Изменяем текст кнопок на русский
+    save_button = self.button_box.button(qtw.QDialogButtonBox.StandardButton.Save)
+    cancel_button = self.button_box.button(qtw.QDialogButtonBox.StandardButton.Cancel)
+
+    save_button.setText("Сохранить")
+    cancel_button.setText("Отмена")
 
 def setup_table_view(table_widget, column_widths, headers):
     table_widget.setColumnHidden(0, True)  # Скрываем ID
@@ -32,7 +39,7 @@ def get_data_from_db(data_type):
     queries = {
         'parents': "SELECT parent_fio FROM parents_view",
         'children': "SELECT child_fio FROM children_view",
-        'lessons': "SELECT lesson_building FROM WHERE is_visible = TRUE",
+        'lessons': "SELECT lesson_building FROM lessons_view",
         'teams': "SELECT team_name FROM teams",
         'genders': "SELECT gender_name FROM genders",
         'months': "SELECT month_name FROM months ORDER BY sorting",
@@ -102,6 +109,32 @@ def get_data(selected_name, col):
     if selected_name.data(selected_name.index(0, col)) is not None:
         return str(selected_name.data(selected_name.index(0, col)))
     return ""
+
+def get_value_with_default(model, index, default='-'):
+    value = get_data(model, index)
+    return value if value not in [None, ''] else default
+
+
+def get_document_details(selected_model, start_index=9):
+    # Список индексов для получения значений
+    indexes = {
+        "Тип документа": start_index,
+        "Серия": start_index + 1,
+        "Номер": start_index + 2,
+        "Выдан": start_index + 3,
+        "Дата выдачи": start_index + 4,
+    }
+
+    # Получаем значения и формируем документ
+    document_details = {key: get_value_with_default(selected_model, index) for key, index in indexes.items()}
+
+    # Формируем строку с деталями документа
+    document_string = '\n'.join(
+        f'{key}: {document_details[key]}' for key in indexes.keys()
+    )
+
+    return document_string
+
 
 
 def populate_combobox(model_name, item_name, items_list, col):
@@ -398,6 +431,15 @@ def update_visibility(lesson_id, teacher_id):
     query.prepare(update_visibility_query)
     query.bindValue(":lesson_id", lesson_id)
     query.bindValue(":teacher_id", teacher_id)
+    return execute_query(query)
+
+def update_column_visibility(table_name, id_column, id_value):
+    query = QtSql.QSqlQuery()
+    update_visibility_query = f"""UPDATE {table_name} 
+                                SET is_visible = FALSE 
+                                WHERE {id_column} = :id_value;"""
+    query.prepare(update_visibility_query)
+    query.bindValue(":id_value", id_value)
     return execute_query(query)
 
 

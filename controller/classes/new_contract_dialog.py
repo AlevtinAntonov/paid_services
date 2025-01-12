@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QMessageBox
 
 from controller.datas.variables import CONTRACT_END_DATE
 from controller.functions import get_data_from_db, get_next_contract_number, validate_and_convert_date, execute_query, \
-    get_data_id_from_db
+    get_data_id_from_db, save_cancel_translate
 from view.new_contract_dialog import Ui_DialogAddNewContract
 
 
@@ -35,6 +35,9 @@ class ContractDialog(qtw.QDialog, Ui_DialogAddNewContract):
         ]
         self.current_index = 0  # Индекс текущего комбобокса
 
+        # Изменяем текст кнопок на русский
+        save_cancel_translate(self)
+
     def keyPressEvent(self, event):
         """ Обрабатывает нажатия клавиш. """
         if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
@@ -49,12 +52,13 @@ class ContractDialog(qtw.QDialog, Ui_DialogAddNewContract):
 
 
     def data_load_new_contract(self):
+        print("data_load_new_contract 1")
         """ Загружает данные выбранного контракта и обновляет соответствующие поля. """
         self.lineEdit_ContractNumberDialog.setText(str(get_next_contract_number()))
         self.lineEdit_ContractDateDialog.setText(validate_and_convert_date(str(datetime.now().strftime('%d.%m.%Y'))))
         self.lineEdit_ContractDateStartDialog.setText(validate_and_convert_date(str(datetime.now().strftime('%d.%m.%Y'))))
         self.lineEdit_ContractDateEndDialog.setText(validate_and_convert_date(CONTRACT_END_DATE))
-
+        print("data_load_new_contract 2")
         # Получаем данные из базы
         parents_fio = get_data_from_db('parents')
         child_fio = get_data_from_db('children')
@@ -74,6 +78,7 @@ class ContractDialog(qtw.QDialog, Ui_DialogAddNewContract):
         self.comboBox_ContractLessonsDialog.setEditable(True)
 
     def accept(self):
+
         """ Переопределяем метод accept для проверки обязательных полей. """
         contract_data = self.get_contract_data()
 

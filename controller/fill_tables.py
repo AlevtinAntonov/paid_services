@@ -27,6 +27,7 @@ def fill_table_widget(model, table_widget, non_editable_columns):
                         item.setCheckState(Qt.CheckState.Checked if item_data else Qt.CheckState.Unchecked)
                         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable |
                                       Qt.ItemFlag.ItemIsSelectable)
+                        item.setText("")
                     else:
                         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable |
 

@@ -168,15 +168,15 @@ class Ui_DialogAddNewContract(object):
         self.horizontalLayout_9.addWidget(self.lineEdit_ContractRemaksDialog)
         self.verticalLayout.addLayout(self.horizontalLayout_9)
         self.verticalLayout_2.addWidget(self.widget_ContractInfo)
-        self.buttonBox = QtWidgets.QDialogButtonBox(parent=DialogAddNewContract)
-        self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Save)
-        self.buttonBox.setObjectName("buttonBox")
-        self.verticalLayout_2.addWidget(self.buttonBox)
+        self.button_box = QtWidgets.QDialogButtonBox(parent=DialogAddNewContract)
+        self.button_box.setOrientation(QtCore.Qt.Orientation.Horizontal)
+        self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Save)
+        self.button_box.setObjectName("button_box")
+        self.verticalLayout_2.addWidget(self.button_box)
 
         self.retranslateUi(DialogAddNewContract)
-        self.buttonBox.accepted.connect(DialogAddNewContract.accept) # type: ignore
-        self.buttonBox.rejected.connect(DialogAddNewContract.reject) # type: ignore
+        self.button_box.accepted.connect(DialogAddNewContract.accept) # type: ignore
+        self.button_box.rejected.connect(DialogAddNewContract.reject) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(DialogAddNewContract)
 
     def retranslateUi(self, DialogAddNewContract):

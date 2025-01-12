@@ -81,16 +81,16 @@ class Ui_AddNewLesson(object):
         self.horizontalLayout_4.setStretch(0, 4)
         self.horizontalLayout_4.setStretch(1, 1)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
-        self.buttonBox = QtWidgets.QDialogButtonBox(parent=AddNewLesson)
-        self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
-        self.buttonBox.setObjectName("buttonBox")
-        self.verticalLayout.addWidget(self.buttonBox)
+        self.button_box = QtWidgets.QDialogButtonBox(parent=AddNewLesson)
+        self.button_box.setOrientation(QtCore.Qt.Orientation.Horizontal)
+        self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Save)
+        self.button_box.setObjectName("button_box")
+        self.verticalLayout.addWidget(self.button_box)
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.retranslateUi(AddNewLesson)
-        self.buttonBox.accepted.connect(AddNewLesson.accept) # type: ignore
-        self.buttonBox.rejected.connect(AddNewLesson.reject) # type: ignore
+        self.button_box.accepted.connect(AddNewLesson.accept) # type: ignore
+        self.button_box.rejected.connect(AddNewLesson.reject) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(AddNewLesson)
 
     def retranslateUi(self, AddNewLesson):

@@ -268,6 +268,7 @@ class FormTabContracts(qtw.QWidget, Ui_Form_TabContracts):
         parents_fio = get_data_from_db('parents')
         child_fio = get_data_from_db('children')
         lesson_names = get_data_from_db('lessons')
+        print(f'lesson_names: {lesson_names=}')
 
         # Инициализация модели для выбранного контракта
         self.selected_contract_model = QtSql.QSqlTableModel(self)
@@ -318,7 +319,8 @@ class FormTabContracts(qtw.QWidget, Ui_Form_TabContracts):
         if self.update_contract(contract_data, applicant_id, child_id, lesson_id):
             # Обновляем таблицу и загружаем данные для выбранного контракта
             self.table_contracts_view()
-            self.load_selected_contract(self.contract_id)
+            if self.contract_id:
+                self.load_selected_contract(self.contract_id)
 
     def collect_contract_data(self):
         """ Сбор данных контракта из пользовательского интерфейса. """
