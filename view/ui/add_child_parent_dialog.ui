@@ -6,18 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>571</height>
+    <width>1295</width>
+    <height>769</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <family>Times New Roman</family>
+    <pointsize>12</pointsize>
+    <bold>false</bold>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Воспитанник/Родители</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_8">
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_11">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_19">
+    <layout class="QHBoxLayout" name="horizontalLayout_27" stretch="1,0,1">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,3">
+      <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,2,2,1">
        <item>
         <widget class="QFrame" name="frame">
          <property name="frameShape">
@@ -82,6 +98,7 @@
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -94,7 +111,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -105,13 +123,14 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,3">
+           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,2,0,1">
             <item>
              <widget class="QLabel" name="label_5">
               <property name="font">
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -124,7 +143,36 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_13">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Полных лет</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildAgeYears">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -142,6 +190,7 @@
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -154,7 +203,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -165,11 +215,44 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_AddParent_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_31" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_34">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>СНИЛС</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildSnils">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_AddUpdateChildFIO">
             <property name="font">
              <font>
               <family>Times New Roman</family>
               <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -238,7 +321,8 @@
             <property name="font">
              <font>
               <family>Times New Roman</family>
-              <pointsize>12</pointsize>
+              <pointsize>13</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -250,15 +334,376 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_AddParent_3">
+           <widget class="QPushButton" name="pushButton_AddUpdateChildDoc">
             <property name="font">
              <font>
               <family>Times New Roman</family>
               <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
              <string>Добавить/изменить документ воспитанника</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_6">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <spacer name="horizontalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_10">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Сведения</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_12">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_11">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Группа</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildTeamName">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Группа по возрасту</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_GroupAgeName">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <item>
+             <widget class="QLabel" name="label_14">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Ребенок по счету</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildNumberInFamily">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_19">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Детей в семье</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_NumberOfChildren">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_21" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_22">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Примечание</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildRemarks">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_AddUpdateChildDatas">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>12</pointsize>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Добавить/изменить сведения</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_7">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <spacer name="horizontalSpacer_13">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_21">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Адреса воспитанника</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_14">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_25">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Регистрация</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildRegAddress">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_22" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_26">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Фактический</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ChildFactAddress">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_AddUpdateChildAddress">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>12</pointsize>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Добавить/изменить адрес воспитанника</string>
             </property>
            </widget>
           </item>
@@ -271,6 +716,8 @@
       <widget class="Line" name="line">
        <property name="font">
         <font>
+         <family>Times New Roman</family>
+         <pointsize>12</pointsize>
          <bold>true</bold>
         </font>
        </property>
@@ -289,7 +736,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,2,1">
+      <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,2,2,1">
        <item>
         <widget class="QFrame" name="frame_3">
          <property name="frameShape">
@@ -351,6 +798,7 @@
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -363,7 +811,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -381,6 +830,7 @@
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -393,7 +843,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -411,6 +862,7 @@
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -423,7 +875,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -434,11 +887,12 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_AddParent">
+           <widget class="QPushButton" name="pushButton_AddParentFIO">
             <property name="font">
              <font>
               <family>Times New Roman</family>
               <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -457,7 +911,7 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,3,1">
+         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,3,0">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
@@ -503,13 +957,14 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QLabel" name="label_20">
               <property name="font">
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -518,46 +973,27 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_ParentStatusName">
-              <property name="font">
-               <font>
-                <family>Times New Roman</family>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>-</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_19">
-              <property name="font">
-               <font>
-                <family>Times New Roman</family>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Тип документа</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_ParentDocumentTypeName">
-              <property name="font">
-               <font>
-                <family>Times New Roman</family>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>-</string>
-              </property>
+             <widget class="QComboBox" name="comboBox_ParentStatusName">
+              <item>
+               <property name="text">
+                <string>-</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>отец</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>мать</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>законный представитель</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
@@ -567,7 +1003,8 @@
             <property name="font">
              <font>
               <family>Times New Roman</family>
-              <pointsize>12</pointsize>
+              <pointsize>13</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -584,6 +1021,7 @@
              <font>
               <family>Times New Roman</family>
               <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -628,7 +1066,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Контакты родителей</string>
+               <string>Сведения о  родителе</string>
               </property>
              </widget>
             </item>
@@ -648,13 +1086,14 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,3">
             <item>
              <widget class="QLabel" name="label_23">
               <property name="font">
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -667,7 +1106,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -678,13 +1118,14 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <layout class="QHBoxLayout" name="horizontalLayout_26" stretch="1,3">
             <item>
              <widget class="QLabel" name="label_24">
               <property name="font">
                <font>
                 <family>Times New Roman</family>
                 <pointsize>12</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -697,7 +1138,8 @@
               <property name="font">
                <font>
                 <family>Times New Roman</family>
-                <pointsize>12</pointsize>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
                </font>
               </property>
               <property name="text">
@@ -708,15 +1150,310 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_AddParentContacts">
+           <layout class="QHBoxLayout" name="horizontalLayout_28" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_31">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Образование</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentEducationLevel">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_29" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_32">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Должность</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentPosition">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_30" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_33">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Место работы</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentPlaceOfWork">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_30">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Примечание</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentRemarks">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_35">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>СНИЛС</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentSnils">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_AddParentInfo">
             <property name="font">
              <font>
               <family>Times New Roman</family>
               <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
-             <string>Добавить/изменить контакты</string>
+             <string>Добавить/изменить сведения</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_8">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_23">
+            <item>
+             <spacer name="horizontalSpacer_15">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_27">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Адреса родителя</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_16">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_24" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_28">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Регистрация</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentRegAddress">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_25" stretch="1,3">
+            <item>
+             <widget class="QLabel" name="label_29">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>12</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Фактический</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ParentFactAddress">
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>14</pointsize>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_AddParentAddresses">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>12</pointsize>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Добавить/изменить адрес родителя</string>
             </property>
            </widget>
           </item>
@@ -729,10 +1466,17 @@
    </item>
    <item>
     <widget class="QDialogButtonBox" name="button_box">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="font">
       <font>
        <family>Times New Roman</family>
        <pointsize>12</pointsize>
+       <bold>false</bold>
       </font>
      </property>
      <property name="toolTip">

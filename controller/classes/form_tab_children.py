@@ -3,6 +3,7 @@ import logging
 from PyQt6 import QtWidgets as qtw, QtSql
 from PyQt6.QtWidgets import QMessageBox
 
+from controller.classes.child_parent_dialog import ChildParentDialog
 from controller.functions import setup_table_view, get_selected_id, get_data, get_value_with_default, show_error, \
     update_column_visibility, get_document_details
 from controller.setup_tbl_views import setup_tables_views
@@ -28,6 +29,7 @@ class FormTabChildren(qtw.QWidget, Ui_Form_TabChildren):
         self.tableWidget_ParentsData.itemChanged.connect(self.on_item_changed)
         self.tableWidget_ParentsData.itemSelectionChanged.connect(self.on_parent_selected)
 
+        self.pushButton_UpdateChild.clicked.connect(self.update_child)
         self.pushButton_InsertChild.clicked.connect(self.add_new_child)
         self.pushButton_DeleteChild.clicked.connect(self.delete_child)
         self.pushButton_DeleteParentData.clicked.connect(self.delete_parent)
@@ -117,11 +119,27 @@ class FormTabChildren(qtw.QWidget, Ui_Form_TabChildren):
         self.label_ParentPassportData.setText(get_document_details(self.selected_parents_model))
 
     def add_new_child(self):
-        pass
-        # if not self.child_person_id:
-        #     show_error('Не выбран ребенок для удаления')
-        #     # QMessageBox.warning(None, "Предупреждение", "Сначала выберите воспитанника.")
-        #     return
+        child_parent_dialog = ChildParentDialog()
+        if child_parent_dialog.exec() == qtw.QDialog.DialogCode.Accepted:
+            logging.debug("ChildParentDialog accepted")
+            try:
+                child_parent_dialog.save_child_parent_data()
+                self.table_children_data_view()
+            except Exception as e:
+                logging.error(f"Error while saving child: {str(e)}")
+                QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить нового воспитанника: {str(e)}")
+
+
+    def update_child(self):
+        if self.child_person_id:
+            child_parent_dialog = ChildParentDialog(self.child_person_id, self.selected_child_model, self.selected_parents_model)
+            if child_parent_dialog.exec() == qtw.QDialog.DialogCode.Accepted:
+                logging.debug("ChildParentDialog accepted")
+        else:
+            show_error('Ребенок не выбран для редактирования')
+
+
+
 
     def delete_person(self, is_child=True):
         person_type = "Ребенок" if is_child else "Родитель"

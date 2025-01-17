@@ -9,13 +9,13 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog_ChildData(object):
-    def setupUi(self, Dialog_ChildData):
-        Dialog_ChildData.setObjectName("Dialog_ChildData")
-        Dialog_ChildData.resize(403, 316)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_ChildData)
+class Ui_Dialog_PersonDatas(object):
+    def setupUi(self, Dialog_PersonDatas):
+        Dialog_PersonDatas.setObjectName("Dialog_PersonDatas")
+        Dialog_PersonDatas.resize(461, 316)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_PersonDatas)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.frame = QtWidgets.QFrame(parent=Dialog_ChildData)
+        self.frame = QtWidgets.QFrame(parent=Dialog_PersonDatas)
         self.frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame.setObjectName("frame")
@@ -166,7 +166,7 @@ class Ui_Dialog_ChildData(object):
         self.horizontalLayout_8.setStretch(1, 2)
         self.verticalLayout.addLayout(self.horizontalLayout_8)
         self.verticalLayout_2.addWidget(self.frame)
-        self.button_box = QtWidgets.QDialogButtonBox(parent=Dialog_ChildData)
+        self.button_box = QtWidgets.QDialogButtonBox(parent=Dialog_PersonDatas)
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(12)
@@ -176,19 +176,19 @@ class Ui_Dialog_ChildData(object):
         self.button_box.setObjectName("button_box")
         self.verticalLayout_2.addWidget(self.button_box)
 
-        self.retranslateUi(Dialog_ChildData)
-        self.button_box.accepted.connect(Dialog_ChildData.accept) # type: ignore
-        self.button_box.rejected.connect(Dialog_ChildData.reject) # type: ignore
-        QtCore.QMetaObject.connectSlotsByName(Dialog_ChildData)
+        self.retranslateUi(Dialog_PersonDatas)
+        self.button_box.accepted.connect(Dialog_PersonDatas.accept) # type: ignore
+        self.button_box.rejected.connect(Dialog_PersonDatas.reject) # type: ignore
+        QtCore.QMetaObject.connectSlotsByName(Dialog_PersonDatas)
 
-    def retranslateUi(self, Dialog_ChildData):
+    def retranslateUi(self, Dialog_PersonDatas):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_ChildData.setWindowTitle(_translate("Dialog_ChildData", "ФИО"))
-        self.label.setText(_translate("Dialog_ChildData", "Введите данные"))
-        self.label_2.setText(_translate("Dialog_ChildData", "Фамилия*"))
-        self.label_3.setText(_translate("Dialog_ChildData", "Имя*"))
-        self.label_4.setText(_translate("Dialog_ChildData", "Отчество"))
-        self.label_5.setText(_translate("Dialog_ChildData", "Дата рождения*"))
-        self.label_6.setText(_translate("Dialog_ChildData", "Пол*"))
-        self.label_7.setText(_translate("Dialog_ChildData", "СНИЛС"))
-        self.label_8.setText(_translate("Dialog_ChildData", "Примечание"))
+        Dialog_PersonDatas.setWindowTitle(_translate("Dialog_PersonDatas", "ФИО"))
+        self.label.setText(_translate("Dialog_PersonDatas", "Введите данные"))
+        self.label_2.setText(_translate("Dialog_PersonDatas", "Фамилия*"))
+        self.label_3.setText(_translate("Dialog_PersonDatas", "Имя*"))
+        self.label_4.setText(_translate("Dialog_PersonDatas", "Отчество"))
+        self.label_5.setText(_translate("Dialog_PersonDatas", "Дата рождения*"))
+        self.label_6.setText(_translate("Dialog_PersonDatas", "Пол*"))
+        self.label_7.setText(_translate("Dialog_PersonDatas", "СНИЛС (11 цифр)"))
+        self.label_8.setText(_translate("Dialog_PersonDatas", "Примечание"))

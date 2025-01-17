@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog_ChildData</class>
- <widget class="QDialog" name="Dialog_ChildData">
+ <class>Dialog_PersonDatas</class>
+ <widget class="QDialog" name="Dialog_PersonDatas">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>403</width>
+    <width>461</width>
     <height>316</height>
    </rect>
   </property>
@@ -206,7 +206,7 @@
            </font>
           </property>
           <property name="text">
-           <string>СНИЛС</string>
+           <string>СНИЛС (11 цифр)</string>
           </property>
          </widget>
         </item>
@@ -275,7 +275,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog_ChildData</receiver>
+   <receiver>Dialog_PersonDatas</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -291,7 +291,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog_ChildData</receiver>
+   <receiver>Dialog_PersonDatas</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

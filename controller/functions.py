@@ -442,7 +442,56 @@ def update_column_visibility(table_name, id_column, id_value):
     query.bindValue(":id_value", id_value)
     return execute_query(query)
 
+def format_phone_number(phone_number):
+    text = phone_number.text()
+    # Оставляем только цифры из введенного текста
+    numbers = ''.join(filter(str.isdigit, text))
 
+    if len(numbers) == 10:  # Форматировать только при вводе всех 10 цифр
+        formatted_number = f'+7({numbers[:3]}){numbers[3:6]}-{numbers[6:8]}-{numbers[8:10]}'
+        phone_number.setText(formatted_number)
+
+
+def format_snils2(snils):
+    text = snils.text()
+    if len(text) == 11:
+        formatted_snils = f"{text[:3]}-{text[3:6]}-{text[6:9]} {text[9:11]}"
+        snils.setText(formatted_snils)
+
+def format_snils(snils):
+    text = snils.text()
+    # Удаляем все символы, кроме цифр
+    digits = ''.join(filter(str.isdigit, text))
+
+    # Ограничиваем длину до 11 символов
+    if len(digits) > 11:
+        digits = digits[:11]
+
+    # Форматируем СНИЛС
+    formatted_text = ""
+    if len(digits) <= 3:
+        formatted_text = digits
+    elif len(digits) <= 5:
+        formatted_text = f"{digits[:3]}-{digits[3:]}"
+    elif len(digits) <= 8:
+        formatted_text = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
+    elif len(digits) <= 11:
+        formatted_text = f"{digits[:3]}-{digits[3:5]}-{digits[5:8]} {digits[8:]}"
+
+    snils.setText(formatted_text)
+
+    # Устанавливаем курсор в конец строки
+    snils.setCursorPosition(len(formatted_text))
+
+
+def extract_digits(input_text):
+    return ''.join(filter(str.isdigit, str(input_text)))
+
+
+def capitalize_first_letter(widget):
+    text = widget.text()
+    if text and text[0].islower():
+        widget.setText(text[0].upper() + text[1:])
 
 if __name__ == '__main__':
     # db_connector = DatabaseConnector()
